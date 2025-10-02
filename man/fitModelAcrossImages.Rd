@@ -24,6 +24,9 @@ fitModelAcrossImages(
 \arguments{
 \item{spe}{\code{SpatialExperiment}; object subset to a single image}
 
+\item{fun}{\code{character}; the \code{spatstat.model} function to use for computation.
+Typically one of \code{ppm}, \code{kppm} or \code{dppm}.}
+
 \item{imageId}{\code{character}; column in the colData of the \code{SpatialExperiment}
 object specifying the image ID}
 

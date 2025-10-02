@@ -6,6 +6,8 @@
 #' object specifying the image ID
 #' @param imageLs `list`; a list specifying the subset of all images. If `NULL`
 #' then all images are considered
+#' @param fun `character`; the `spatstat.model` function to use for computation.
+#' Typically one of `ppm`, `kppm` or `dppm`.
 #' @param marks `character`; the column with the labels e.g. cell types
 #' @param response `character`; The mark whos intensity is modelled as response
 #' @param distanceTo `character` | `owin`; optional, an character specifyng
