@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(multiPointR)
+library(multipointR)
 
-test_check("multiPointR")
+test_check("multipointR")
