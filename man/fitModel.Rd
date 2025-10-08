@@ -7,9 +7,10 @@ object}
 \usage{
 fitModel(
   spe,
-  fun = "dppm",
+  model = "ppm",
   marks,
   response,
+  cellspacing = NULL,
   distanceTo = NULL,
   polygon = NULL,
   inhomogeneous = FALSE,
@@ -21,12 +22,16 @@ fitModel(
 \arguments{
 \item{spe}{\code{SpatialExperiment}; object subset to a single image}
 
-\item{fun}{\code{character}; the \code{spatstat.model} function to use for computation.
+\item{model}{\code{character}; the \code{spatstat.model} function to use for computation.
 Typically one of \code{ppm}, \code{kppm} or \code{dppm}.}
 
 \item{marks}{\code{character}; the column with the labels e.g. cell types}
 
 \item{response}{\code{character}; The mark whos intensity is modelled as response}
+
+\item{cellspacing}{\code{numeric}; The spacing due to the cell body. Defaults to
+10 in the case of micro meters. Specifying this parameter changes the Poisson
+process model to a Gibbs point process model.}
 
 \item{distanceTo}{\code{character} | \code{owin}; optional, an character specifyng
 the mark of the ppp to which the distance \code{distfun} from \code{spatstat.geom}

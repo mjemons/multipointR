@@ -6,7 +6,7 @@
 #' object specifying the image ID
 #' @param imageLs `list`; a list specifying the subset of all images. If `NULL`
 #' then all images are considered
-#' @param fun `character`; the `spatstat.model` function to use for computation.
+#' @param model `character`; the `spatstat.model` function to use for computation.
 #' Typically one of `ppm`, `kppm` or `dppm`.
 #' @param marks `character`; the column with the labels e.g. cell types
 #' @param response `character`; The mark whos intensity is modelled as response
@@ -41,7 +41,7 @@
 #' @importFrom spatstat.model dppm
 #' @importFrom spatstat.model kppm
 fitModelAcrossImages <- function(spe,
-                                 fun = "dppm",
+                                 model = "ppm",
                                  imageId,
                                  imageLs = NULL,
                                  marks,
@@ -58,10 +58,9 @@ fitModelAcrossImages <- function(spe,
   }
 
   mdlLs <- parallel::mclapply(imageLs, function(image){
-    print(image)
     speSub <- spe[, colData(spe)[[imageId]] == image]
     mdl <- fitModel(spe = speSub,
-                    fun = fun,
+                    model = model,
                     marks = marks,
                     response = response,
                     distanceTo = distanceTo,

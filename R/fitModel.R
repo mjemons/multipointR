@@ -2,10 +2,13 @@
 #' object
 #'
 #' @param spe `SpatialExperiment`; object subset to a single image
-#' @param fun `character`; the `spatstat.model` function to use for computation.
+#' @param model `character`; the `spatstat.model` function to use for computation.
 #' Typically one of `ppm`, `kppm` or `dppm`.
 #' @param marks `character`; the column with the labels e.g. cell types
 #' @param response `character`; The mark whos intensity is modelled as response
+#' @param cellspacing `numeric`; The spacing due to the cell body. Defaults to
+#' 10 in the case of micro meters. Specifying this parameter changes the Poisson
+#' process model to a Gibbs point process model.
 #' @param distanceTo `character` | `owin`; optional, an character specifyng
 #' the mark of the ppp to which the distance `distfun` from `spatstat.geom`
 #' shall be computed. Alternatively, this can be a segmented object passed as
@@ -35,9 +38,10 @@
 #' @importFrom spatstat.model kppm
 #' @importFrom spatstat.model ppm
 fitModel <- function(spe,
-                     fun = "dppm",
+                     model = "ppm",
                      marks,
                      response,
+                     cellspacing = NULL,
                      distanceTo = NULL,
                      polygon = NULL,
                      inhomogeneous = FALSE,
@@ -56,7 +60,8 @@ fitModel <- function(spe,
   #subset the ppp object to the response mark
   ppResponse <- spatstat.geom::unmark(pp[pp$marks %in% response, drop = TRUE])
   if(!is.null(threshold) && spatstat.geom::npoints(ppResponse) <= threshold){
-    return(paste0("There were less than ",  threshold, "points to fit"))
+    message(paste0("There were less than ",  threshold, " points to compute distances too"))
+        return(NULL)
   }
   data <- list(ppResponse = ppResponse)
 
@@ -66,8 +71,9 @@ fitModel <- function(spe,
     if(is(distanceTo, "character")){
       object <- pp[pp$marks %in% distanceTo, drop = TRUE]
       if(!is.null(threshold) && spatstat.geom::npoints(object) <= threshold){
-        return(paste0("There were less than ",  threshold, "points to compute
+        message(paste0("There were less than ",  threshold, " points to compute
                       distances too"))
+        return(NULL)
       }
     }
     #else it is a shape which
@@ -76,34 +82,46 @@ fitModel <- function(spe,
     }
     #if it is neither, quite with an error
     else{
-      print("Error in computing distfun to an object that is neither a mark in
+      message("Error in computing distfun to an object that is neither a mark in
             the ppp an owin object")
       return(NULL)
     }
     distanceFun <- spatstat.geom::distfun(object)
     data <- c(data, distanceFun = distanceFun)
   }
+
+  #create a formula object
+  formula <- stats::as.formula(paste("ppResponse ~ 1" ))
+
   if(length(data)>1){
     #create formula object
     formula <- stats::as.formula(paste("ppResponse ~ 1 + ", paste(names(data)[c(-1)],
                                                                   collapse="+")))
   }
-  else{
-    #create formula object
-    formula <- stats::as.formula(paste("ppResponse ~ 1" ))
-  }
+
   #correct for spatial inhomogeneity with a spline basis for x and y
   if(inhomogeneous){
-    formula <- stats::as.formula(paste("ppResponse ~ 1 + ", paste(names(data)[c(-1)],
-                                                             collapse="+"),
-                                       "+bs(x,5)+bs(y,5)"))
+    formula <- stats::update(formula, . ~ . + splines::bs(x,5)+splines::bs(y,5))
   }
-  #fit the model
-  mdl <- do.call(fun,
-                 args = list(formula = formula,
-                             family = family,
-                             data = data,
-                             ...)
-  )
+  #fit the model. If there is a cellspacing value indicated, this will be a
+  #Gibbs point process with a Hardcore spacing between points.
+  if(!is.null(cellspacing)){
+    mdl <- do.call(model,
+                   args = list(Q = formula,
+                               family = family,
+                               data = data,
+                               interaction = spatstat.model::Hardcore(cellspacing),
+                               ...)
+    )
+  }else{
+    mdl <- do.call(model,
+                   args = list(Q = formula,
+                               family = family,
+                               data = data,
+                               ...)
+    )
+  }
+  #add covariates to the mdl list
+  mdl$colData <- colData(spe)
   return(mdl)
 }
