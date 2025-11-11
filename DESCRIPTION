@@ -14,7 +14,8 @@ Imports:
     methods,
     SpatialExperiment,
     spatstat.geom,
-    spatstat.model
+    spatstat.model,
+    sosta
 biocViews: Software, Spatial, Transcriptomics
 Suggests: 
     knitr,

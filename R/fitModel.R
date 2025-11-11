@@ -101,7 +101,18 @@ fitModel <- function(spe,
 
   #correct for spatial inhomogeneity with a spline basis for x and y
   if(inhomogeneous){
-    formula <- stats::update(formula, . ~ . + splines::bs(x,5)+splines::bs(y,5))
+    formula <- stats::update(formula, . ~ . + s(x,y))
+  }
+
+  #add segmentation mask if indicated
+  if(!is.null(polygon)){
+    poly <- sosta::reconstructShapeDensityImage(
+    spe = spe, 
+    marks = marks,
+    markSelect = polygon
+  )
+    formula <- stats::update(formula, . ~ . + polygon)
+    data$polygon <- spatstat.geom::as.owin(poly)
   }
   #fit the model. If there is a cellspacing value indicated, this will be a
   #Gibbs point process with a Hardcore spacing between points.
@@ -111,6 +122,7 @@ fitModel <- function(spe,
                                family = family,
                                data = data,
                                interaction = spatstat.model::Hardcore(cellspacing),
+                               use.gam = TRUE,
                                ...)
     )
   }else{
@@ -118,6 +130,7 @@ fitModel <- function(spe,
                    args = list(Q = formula,
                                family = family,
                                data = data,
+                               use.gam = TRUE,
                                ...)
     )
   }
