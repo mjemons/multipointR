@@ -2,20 +2,17 @@
 % Please edit documentation in R/fitModel.R
 \name{fitModel}
 \alias{fitModel}
-\title{Fit a determinantal point process model to one FOV of a \code{SpatialExperiment}
+\title{Fit point process models to one FOV of a \code{SpatialExperiment}
 object}
 \usage{
 fitModel(
   spe,
   model = "ppm",
   marks,
-  response,
-  cellspacing = NULL,
-  distanceTo = NULL,
-  polygon = NULL,
-  inhomogeneous = FALSE,
+  formula,
   family = spatstat.model::dppGauss(),
   threshold = NULL,
+  cellspacing = NULL,
   ...
 )
 }
@@ -27,35 +24,24 @@ Typically one of \code{ppm}, \code{kppm} or \code{dppm}.}
 
 \item{marks}{\code{character}; the column with the labels e.g. cell types}
 
-\item{response}{\code{character}; The mark whos intensity is modelled as response}
-
-\item{cellspacing}{\code{numeric}; The spacing due to the cell body. Defaults to
-10 in the case of micro meters. Specifying this parameter changes the Poisson
-process model to a Gibbs point process model.}
-
-\item{distanceTo}{\code{character} | \code{owin}; optional, an character specifyng
-the mark of the ppp to which the distance \code{distfun} from \code{spatstat.geom}
-shall be computed. Alternatively, this can be a segmented object passed as
-owin}
-
-\item{polygon}{\code{owin}; optional, a polygon to add as a covariate to the data}
-
-\item{inhomogeneous}{\code{logical}; Whether a correction for inhomogeneous
-distribution of cell types with a B-spline should be perfomred.}
+\item{formula}{\code{formula}; the formula to pass to the \code{ppm} function}
 
 \item{family}{\code{detpointprocfamily}; Family to use in the point process model.
 One of \code{dppGauss}, \code{dppMatern}, \code{dppCauchy}, \code{dppBessel} or \code{dppPowerExp}}
 
 \item{threshold}{\code{numeric}; a threshold to apply on the minimum number of
-points a point pattern needs to have to fit a \code{dppm} model to it.}
+points a point pattern needs to have to fit a \code{ppm} model to it.}
 
-\item{...}{other parameters passed on to \code{dppm} model from \code{spatstat.model}}
+\item{cellspacing}{\code{numeric} how much spacing should be accounted for in the
+Hardcore process due to the cell body}
+
+\item{...}{other parameters passed on to \code{ppm} model from \code{spatstat.model}}
 }
 \value{
 \code{list}; result from a \code{dppm} model in \code{spatstat.model}
 }
 \description{
-Fit a determinantal point process model to one FOV of a \code{SpatialExperiment}
+Fit point process models to one FOV of a \code{SpatialExperiment}
 object
 }
 \examples{
@@ -64,6 +50,7 @@ speSub <- subset(spe, , imageID == "5")
 
 mdl <- fitModel(spe = speSub,
                 marks = "cellType",
-                response = "Keratin_Tumour",
-                distanceTo = "CD8_T_cell")
+                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+)
+
 }

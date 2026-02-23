@@ -25,9 +25,9 @@ mdlLs <- fitModelAcrossImages(spe = spe,
                 imageId = "imageID",
                 imageLs = list("1", "2"),
                 marks = "cellType",
-                response = "Keratin_Tumour",
-                distanceTo = "CD8_T_cell",
+                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
                 threshold = 10)
+
 mdlDf <- mdlToDf(mdlLs = mdlLs,
                  imageCovariates = c("imageID",
                                      "tumour_type"))

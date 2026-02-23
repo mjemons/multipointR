@@ -2,7 +2,7 @@
 % Please edit documentation in R/fitModelAcrossImages.R
 \name{fitModelAcrossImages}
 \alias{fitModelAcrossImages}
-\title{Fit determinantal point process model across all images in the
+\title{Fit point process models across all images in the
 \code{SpatialExperiment} object}
 \usage{
 fitModelAcrossImages(
@@ -11,12 +11,10 @@ fitModelAcrossImages(
   imageId,
   imageLs = NULL,
   marks,
-  response,
-  distanceTo = NULL,
-  polygon = NULL,
-  inhomogeneous = FALSE,
+  formula,
   family = spatstat.model::dppGauss(),
   threshold = NULL,
+  cellspacing = NULL,
   ncores = 1,
   ...
 )
@@ -35,23 +33,16 @@ then all images are considered}
 
 \item{marks}{\code{character}; the column with the labels e.g. cell types}
 
-\item{response}{\code{character}; The mark whos intensity is modelled as response}
-
-\item{distanceTo}{\code{character} | \code{owin}; optional, an character specifyng
-the mark of the ppp to which the distance \code{distfun} from \code{spatstat.geom}
-shall be computed. Alternatively, this can be a segmented object passed as
-owin}
-
-\item{polygon}{\code{owin}; optional, a polygon to add as a covariate to the data}
-
-\item{inhomogeneous}{\code{logical}; Whether a correction for inhomogeneous
-distribution of cell types with a B-spline should be perfomred.}
+\item{formula}{\code{formula}; the formula to pass to the \code{ppm} function}
 
 \item{family}{\code{detpointprocfamily}; Family to use in the point process model.
 One of \code{dppGauss}, \code{dppMatern}, \code{dppCauchy}, \code{dppBessel} or \code{dppPowerExp}}
 
 \item{threshold}{\code{numeric}; a threshold to apply on the minimum number of
-points a point pattern needs to have to fit a \code{dppm} model to it.}
+points a point pattern needs to have to fit a \code{ppm} model to it.}
+
+\item{cellspacing}{\code{numeric} how much spacing should be accounted for in the
+Hardcore process due to the cell body}
 
 \item{ncores}{\code{numeric}; the number of cores to used for parallel processing}
 
@@ -61,7 +52,7 @@ points a point pattern needs to have to fit a \code{dppm} model to it.}
 \code{list}; result from a \code{dppm} model in \code{spatstat.model}
 }
 \description{
-Fit determinantal point process model across all images in the
+Fit point process models across all images in the
 \code{SpatialExperiment} object
 }
 \examples{
@@ -71,7 +62,7 @@ mdlLs <- fitModelAcrossImages(spe = spe,
                 imageId = "imageID",
                 imageLs = list("1", "2"),
                 marks = "cellType",
-                response = "Keratin_Tumour",
-                distanceTo = "CD8_T_cell",
+                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
                 threshold = 10)
+
 }

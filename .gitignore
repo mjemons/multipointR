@@ -6,3 +6,4 @@
 .quarto
 *.Rproj
 *.rds
+inst/doc
