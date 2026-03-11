@@ -52,8 +52,8 @@ fitModelAcrossImages <- function(spe,
 
   mdlLs <- parallel::mclapply(imageLs, function(image){
     speSub <- spe[, colData(spe)[[imageId]] == image]
-    mdl <- fitModel(spe,
-                    model = "ppm",
+    mdl <- fitModel(spe = speSub,
+                    model = model,
                     marks = marks,
                     formula = formula,
                     family = family,

@@ -24,7 +24,7 @@ test_that("fitModel works with mixed formulas of changed and unchanged functions
 
   mdl <- fitModel(spe = speSub,
                   marks = "cellType",
-                  formula = as.formula("Keratin_Tumour ~ s(x) + log(density.ppp(Endothelial)) + distfun(CD8_T_cell)"),
+                  formula = as.formula("Keratin_Tumour ~ s(x) + log(density.ppp(Endothelial)) + spatstat.geom::distfun(CD8_T_cell)"),
                   threshold = 10)
   expect_equal(is(mdl), "ppm")
 })
