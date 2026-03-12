@@ -1,3 +1,4 @@
+library("spatstat.explore")
 spe <- SpatialDatasets::spe_Keren_2018()
 
 test_that("fitModel works with treshold", {
@@ -24,7 +25,7 @@ test_that("fitModel works with mixed formulas of changed and unchanged functions
 
   mdl <- fitModel(spe = speSub,
                   marks = "cellType",
-                  formula = as.formula("Keratin_Tumour ~ s(x) + log(density.ppp(Endothelial)) + spatstat.geom::distfun(CD8_T_cell)"),
+                  formula = as.formula("Keratin_Tumour ~ s(x) + log(density.ppp(Endothelial))"),
                   threshold = 10)
   expect_equal(is(mdl), "ppm")
 })

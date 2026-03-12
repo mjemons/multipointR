@@ -81,8 +81,19 @@ fitModel <- function(spe,
       deparsed <- formula.tools::rhs.vars(formula)
       #get the position in the function
       formula_position <- which(grepl(var, deparsed))
-      #replace function name
-      newVar <- gsub(paste("[()]"), ".", deparsed[formula_position])
+      #string split the variable 
+      splitVar <- strsplit(deparsed[formula_position], "[()]")[[1]]
+      #remove empty strings
+      splitVar <- splitVar[nzchar(splitVar)]
+      #remove the already transformed part
+      if(length(splitVar)>2){
+        transform <- splitVar[-c(length(splitVar)-1, length(splitVar))]
+        stopifnot("Only one composite function can be passed in this function" = length(transform) == 1)
+        #replace function name
+        newVar <- paste0(transform,"(",fun,".",var,".",")")
+      }else{
+        newVar <- paste0(fun,".",var,".")
+      }
       #get the rhs formula vars
       formulaVars <- formula.tools::rhs.vars(formula)
       #overwrite the variable at the changed position
