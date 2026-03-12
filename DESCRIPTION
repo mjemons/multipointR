@@ -1,5 +1,5 @@
 Package: multipointR
-Title: A package to compare intensities of point patterns across samples
+Title: A package to compare intensities of point patterns across samples with spatial parametric models
 Version: 0.0.0.9000
 Authors@R: 
     person("Martin", "Emons", , "martin.emons@uzh.ch", role = c("aut", "cre"),
