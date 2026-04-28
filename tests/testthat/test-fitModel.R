@@ -29,3 +29,13 @@ test_that("fitModel works with mixed formulas of changed and unchanged functions
                   threshold = 10)
   expect_equal(is(mdl), "ppm")
 })
+
+test_that("fitModel returns NULL as model if the covariate is absent", {
+  speSub <- subset(spe, , imageID == "15")
+
+  mdl <- fitModel(spe = speSub,
+                  marks = "cellType",
+                  formula = as.formula("Keratin_Tumour ~ s(x) + log(density.ppp(CD8_T_cell))"),
+                  threshold = 10)
+  expect_true(is.null(mdl))
+})

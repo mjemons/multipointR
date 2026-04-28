@@ -12,7 +12,7 @@ fitModel(
   formula,
   family = spatstat.model::dppGauss(),
   threshold = NULL,
-  cellspacing = NULL,
+  cellspacing = NA,
   ...
 )
 }
@@ -33,7 +33,8 @@ One of \code{dppGauss}, \code{dppMatern}, \code{dppCauchy}, \code{dppBessel} or 
 points a point pattern needs to have to fit a \code{ppm} model to it.}
 
 \item{cellspacing}{\code{numeric} how much spacing should be accounted for in the
-Hardcore process due to the cell body}
+Hardcore process due to the cell body. If this is not provided, the cell spacing
+parameter is estimated from the data}
 
 \item{...}{other parameters passed on to \code{ppm} model from \code{spatstat.model}}
 }

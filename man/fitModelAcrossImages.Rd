@@ -14,8 +14,9 @@ fitModelAcrossImages(
   formula,
   family = spatstat.model::dppGauss(),
   threshold = NULL,
-  cellspacing = NULL,
+  cellspacing = NA,
   ncores = 1,
+  verbose = TRUE,
   ...
 )
 }
@@ -42,9 +43,12 @@ One of \code{dppGauss}, \code{dppMatern}, \code{dppCauchy}, \code{dppBessel} or 
 points a point pattern needs to have to fit a \code{ppm} model to it.}
 
 \item{cellspacing}{\code{numeric} how much spacing should be accounted for in the
-Hardcore process due to the cell body}
+Hardcore process due to the cell body. If this is not provided, the cell spacing
+parameter is estimated from the data}
 
 \item{ncores}{\code{numeric}; the number of cores to used for parallel processing}
+
+\item{verbose}{\code{logical}; whether to print informations on the fitting}
 
 \item{...}{other parameters passed on to \code{dppm} model from \code{spatstat.model}}
 }

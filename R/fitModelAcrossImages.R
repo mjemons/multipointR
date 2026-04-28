@@ -15,8 +15,10 @@
 #' @param threshold `numeric`; a threshold to apply on the minimum number of
 #' points a point pattern needs to have to fit a `ppm` model to it.
 #' @param cellspacing `numeric` how much spacing should be accounted for in the 
-#' Hardcore process due to the cell body
+#' Hardcore process due to the cell body. If this is not provided, the cell spacing
+#' parameter is estimated from the data
 #' @param ncores `numeric`; the number of cores to used for parallel processing
+#' @param verbose `logical`; whether to print informations on the fitting
 #' @param ... other parameters passed on to `dppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `dppm` model in `spatstat.model`
@@ -43,8 +45,9 @@ fitModelAcrossImages <- function(spe,
                                 formula,
                                 family = spatstat.model::dppGauss(),
                                 threshold = NULL,
-                                cellspacing = NULL,
+                                cellspacing = NA,
                                 ncores = 1,
+                                verbose = TRUE,
                                 ...){
   if(is.null(imageLs)){
     imageLs <- spe[[imageId]] |> unique() |> as.factor()
@@ -52,6 +55,9 @@ fitModelAcrossImages <- function(spe,
 
   mdlLs <- parallel::mclapply(imageLs, function(image){
     speSub <- spe[, colData(spe)[[imageId]] == image]
+    if(verbose){
+      message(paste0("Fitting ", model, " to image ", image))
+    }
     mdl <- fitModel(spe = speSub,
                     model = model,
                     marks = marks,
