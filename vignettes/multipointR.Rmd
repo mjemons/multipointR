@@ -247,7 +247,7 @@ $$
 h(u,r_h,r_s,\mathbf{x}) = \cases{
   0 & if $\lVert u-v \rVert \leq r_h, v \in \mathbf{x}\setminus\{u\}$\\
   \gamma & if $r_h < \lVert u-v \rVert \leq r_s, v \in \mathbf{x}\setminus\{u\}$\\
-  1 & if $\lVert u-v \rVert > r_h, v \in \mathbf{x}\setminus\{u\}$\\
+  1 & if $\lVert u-v \rVert > r_s, v \in \mathbf{x}\setminus\{u\}$\\
 } 
 $$ 
 
