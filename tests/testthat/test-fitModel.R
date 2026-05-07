@@ -25,7 +25,7 @@ test_that("fitModel works with mixed formulas of changed and unchanged functions
 
   mdl <- fitModel(spe = speSub,
                   marks = "cellType",
-                  formula = as.formula("Keratin_Tumour ~ s(x) + log(density.ppp(Endothelial))"),
+                  formula = as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(Endothelial))"),
                   threshold = 10)
   expect_equal(is(mdl), "ppm")
 })
@@ -35,7 +35,7 @@ test_that("fitModel returns NULL as model if the covariate is absent", {
 
   mdl <- fitModel(spe = speSub,
                   marks = "cellType",
-                  formula = as.formula("Keratin_Tumour ~ s(x) + log(density.ppp(CD8_T_cell))"),
+                  formula = as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(CD8_T_cell))"),
                   threshold = 10)
   expect_true(is.null(mdl))
 })

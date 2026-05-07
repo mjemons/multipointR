@@ -14,6 +14,7 @@ fitModelAcrossImages(
   formula,
   family = spatstat.model::dppGauss(),
   threshold = NULL,
+  interaction = "Fiksel",
   cellspacing = NA,
   ncores = 1,
   verbose = TRUE,
@@ -41,6 +42,9 @@ One of \code{dppGauss}, \code{dppMatern}, \code{dppCauchy}, \code{dppBessel} or 
 
 \item{threshold}{\code{numeric}; a threshold to apply on the minimum number of
 points a point pattern needs to have to fit a \code{ppm} model to it.}
+
+\item{interaction}{\code{character}; Formula specifying whether to fit a \code{Hardcore},
+\code{Strauss}, \code{StraussHard} or \code{Fiksel} process to the data}
 
 \item{cellspacing}{\code{numeric} how much spacing should be accounted for in the
 Hardcore process due to the cell body. If this is not provided, the cell spacing

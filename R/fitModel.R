@@ -10,9 +10,17 @@
 #' One of `dppGauss`, `dppMatern`, `dppCauchy`, `dppBessel` or `dppPowerExp`
 #' @param threshold `numeric`; a threshold to apply on the minimum number of
 #' points a point pattern needs to have to fit a `ppm` model to it.
+#' @param interaction `character`; Formula specifying whether to fit a `Hardcore`,
+#' `Strauss`, or `StraussHard` process to the data
+#' @param lambda `im` or `NULL`; offset of the intensity to include in the model to account for
+#' the underlying inhomogeneity. If this is not user provided, will be estimated
+#'  as inhomogeneous intensity via diggle correction
 #' @param cellspacing `numeric` how much spacing should be accounted for in the 
-#' Hardcore process due to the cell body. If this is not provided, the cell spacing
-#' parameter is estimated from the data
+#' interaction process due to the cell body. If this is not provided, the cell spacing
+#' parameter is estimated from the data as the minimum nearest neighbour distance
+#' divided by $n(n+1)$ as done in `spatstat.model::Hardcore`. In the case of `StraussHard`,
+#' only the Strauss interaction radius can be user-provided, 
+#' the Hardcore interaction is always estimated from the data.
 #' @param ... other parameters passed on to `ppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `dppm` model in `spatstat.model`
@@ -38,6 +46,8 @@ fitModel <- function(spe,
                      formula,
                      family = spatstat.model::dppGauss(),
                      threshold = NULL,
+                     interaction = "StraussHard",
+                     lambda = NULL, 
                      cellspacing = NA,
                      ...){
   #some type assertions
@@ -51,6 +61,15 @@ fitModel <- function(spe,
 
   #subset the ppp object to the response mark
   ppResponse <- spatstat.geom::unmark(pp[pp$marks %in% response, drop = TRUE])
+  #calculate the minimum nearest neighbour distance if `is.null(cellspacing)`
+  ### adapted from spatstat.model::Hardcore GPL-2 licensed
+  if(length(cellspacing)>0 || is.na(cellspacing)){
+    minNnDist <- minnndist(ppResponse)
+    nX <- npoints(ppResponse)
+    cellspacing <- minNnDist * nX/(nX+1)
+  }
+  ### end of directly adapted code ### 
+  
   if(!is.null(threshold) && spatstat.geom::npoints(ppResponse) <= threshold){
     message(paste0("There were less than ",  threshold, " points to compute an intensity on"))
         return(NULL)
@@ -65,10 +84,20 @@ fitModel <- function(spe,
   
   data[[response]] = ppResponse
 
+  #calculate inhomogeneous intensity offset if not provided
+  #if this is not provided, calculate it, else take the user
+  #provided offset
+  if(is.null(lambda)){
+    lambda  <- stats::density(ppResponse, positive = TRUE)
+    data[["lambda"]] <- lambda
+  }else{
+    data[["lambda"]] <- lambda
+  }
+
   for(var in levels(pp$marks)){
     if(var %in% rhsVars){
       #convert to pp object
-      ppVar = spatstat.geom::unmark(pp[pp$marks %in% var, drop = TRUE])
+      ppVar <- spatstat.geom::unmark(pp[pp$marks %in% var, drop = TRUE])
       #get position in the rhs list
       position <- which(all.names(rhs) == var)
       #get the function that is being applied to the object
@@ -99,7 +128,7 @@ fitModel <- function(spe,
       #overwrite the variable at the changed position
       formulaVars[formula_position] <- newVar
       #new formula
-      formula <- stats::as.formula(paste(formula.tools::lhs.vars(formula)," ~ ", paste(formulaVars, collapse = "+")))
+      formula <- stats::as.formula(paste(formula.tools::lhs.vars(formula)," ~ ", attr(stats::terms(formula), "variables")[attr(stats::terms(formula), "offset")+1] ,"+", paste(formulaVars, collapse = "+")))
     }
   }
   #extract model variables that are in the point pattern marks but have not
@@ -115,12 +144,31 @@ fitModel <- function(spe,
   #value is estimated from the data
   #TODO: Make a try catch in case there is a fit failure to return NULL instead
   #of breaking the entire process.
+  if(interaction == "Strauss"){
+    interactionModel <- spatstat.model::Strauss(r = cellspacing)
+  }else if(interaction == "Hardcore"){
+    interactionModel <- spatstat.model::Hardcore(hc = cellspacing)
+  }else if(interaction == "StraussHard"){
+    #optimise the model parameters
+    rs <- expand.grid(r=seq(cellspacing+0.1, cellspacing + 5, by=0.5),
+                    hc=cellspacing)
+    pg <- spatstat.model::profilepl(rs, spatstat.model::StraussHard, data[[response]], verbose = FALSE, fast = TRUE)
+    interactionModel <- pg$fit$interaction
+  }else if(interaction == "Fiksel"){
+    #optimise the model parameters
+    rs <- expand.grid(r=seq(cellspacing+0.1, cellspacing + 5, by=0.5),
+                      hc=cellspacing,
+                      kappa=seq(0.5,2, by=0.5))
+    pg <- spatstat.model::profilepl(rs, spatstat.model::Fiksel, data[[response]], verbose = FALSE, fast = TRUE)
+    interactionModel <- pg$fit$interaction
+  }else{
+    warning(paste0("Interaction model ", interaction, " is not implemented"))
+  }
   mdl <- do.call(model, 
     args = list(Q = formula,
                 family = family,
                 data = data,
-                interaction = spatstat.model::Hardcore(hc = cellspacing),
-                use.gam = TRUE,
+                interaction = interactionModel,
                 ...)
   )
   #add covariates to the mdl list

@@ -171,7 +171,7 @@ Where $\phi(u)$ is the intensity function of an inhomogeneous Poisson process (n
 The estimation from a dataset then becomes the following:
 
 $$
-\lambda_{\Theta}(u \mid \mathbf{x}) = \exp(\beta_0(u) + \Theta^TZ(u)) + h(u,r,\mathbf{x})
+\lambda_{\Theta}(u \mid \mathbf{x}) = \exp(\beta_0(u) + \Theta^TZ(u)) \cdot h(u,r,\mathbf{x})
 $$
 
 Where $\Theta$ are the first order terms (similar to the Poisson point process), whereas $h(u,r,\mathbf{x})$, the second order terms, define the hard core interaction with interaction radius $r$, subject to the constraint:
@@ -221,7 +221,7 @@ First we will estimate the distribution of p53+ tumour cells as a homogeneous in
 This means we fit a model of the form 
 
 $$
-\lambda(u) = \exp(\beta_0) + h(u,r,\mathbf{x})
+\lambda(u) = \exp(\beta_0) \cdot h(u,r,\mathbf{x})
 $$
 
 with a constant intercept $\beta_0$
@@ -241,7 +241,7 @@ m0
 plot(m0)
 ```
 
-This is not a very sensible model as we see clear inhomogeneous distribution of points in space. Furthermore, we note that the Gibbs hard core model estimated some regions with an intensity of zero because the points are too close to each other. This raises the question whether the cells are actually closer than $10 \mu m$. This leads to a conceptual question on how to parametrise the Gibbs model best for biological tissue. An alternative to the hard core is the Strauss interaction model that parametrises not a hard cut-off but a smooth probability function. A middle ground could be the Strauss-hard core process that combines a hard core effect with a Strauss effect. 
+This is not a very sensible model as we see clear inhomogeneous distribution of points in space. Furthermore, we note that the Gibbs hard core model estimated some regions with an intensity of zero because the points are too close to each other. This raises the question whether the cells are actually closer than $10 \mu m$. This leads to a conceptual question on how to parametrise the Gibbs model best for biological tissue. An alternative to the hard core is the Strauss interaction model that parametrises not a hard cut-off to zero but an interaction probability $\gamma$. A middle ground could be the Strauss-hard core process that combines a hard core effect with a Strauss effect. 
 
 $$
 h(u,r_h,r_s,\mathbf{x}) = \cases{
@@ -258,15 +258,15 @@ where $r_h$ is the hard core radius (can be estimated from the data) and $r_s$ i
 Next, we will formulate a null model of the distribution of p53 positive cells. For this model we will specify an inhomogeneous intensity varying with a bivariate spline model of $x$ and $y$. The model we fit is of the form 
 
 $$
-\lambda(u) = \exp(\beta_0(u)) + h(u,r,\mathbf{x})
+\lambda(u) = \exp(\beta_0) \cdot Z_0 \cdot h(u,r,\mathbf{x})
 $$
 
-with a spatially varying intercept $\beta_0(u)$
+with a spatially varying intercept $\beta_0(u)$. This we specify as an offset image of the intensity $Z_0$
 
 ```{r, Ppm1}
 m1 <- fitModel(spe = speSub,
                 marks = "cellTypeNew",
-                formula = as.formula("p53_Tumour ~ s(x,y)")
+                formula = as.formula("p53_Tumour ~ offset(log(lambda))")
 )
 
 m1
@@ -291,13 +291,13 @@ From biological literature we know that p53+ tumour cells have immune-modulatory
 The model is then:
 
 $$
-\lambda(u) = \exp(\beta_0(u) + \beta_{\text{dist}}Z_{\text{dist}}(u)) + h(u,r,\mathbf{x})
+\lambda(u) = \exp(\beta_0 + \beta_{\text{dist}}Z_{\text{dist}}(u)) \cdot Z_0 \cdot h(u,r,\mathbf{x})
 $$
 
 ```{r, Ppm2}
 m2 <- fitModel(spe = speSub,
                 marks = "cellTypeNew",
-                formula = as.formula("p53_Tumour ~ s(x,y) + distfun(Immune)")
+                formula = as.formula("p53_Tumour ~ offset(log(lambda)) + distfun(Immune)")
 )
 
 m2
@@ -340,7 +340,7 @@ This dataset does not only contain one image. We want to fit univariate models s
 mdlLs <- fitModelAcrossImages(spe = spe,
                 imageId = "imageID",
                 marks = "cellTypeNew",
-                formula = as.formula("p53_Tumour ~ s(x,y) + distfun(Immune)"),
+                formula = as.formula("p53_Tumour ~ offset(log(lambda)) + distfun(Immune)"),
                 threshold = 10)
 ```
 

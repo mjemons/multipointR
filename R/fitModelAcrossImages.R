@@ -14,6 +14,8 @@
 #' One of `dppGauss`, `dppMatern`, `dppCauchy`, `dppBessel` or `dppPowerExp`
 #' @param threshold `numeric`; a threshold to apply on the minimum number of
 #' points a point pattern needs to have to fit a `ppm` model to it.
+#' @param interaction `character`; Formula specifying whether to fit a `Hardcore`,
+#' `Strauss`, `StraussHard` or `Fiksel` process to the data
 #' @param cellspacing `numeric` how much spacing should be accounted for in the 
 #' Hardcore process due to the cell body. If this is not provided, the cell spacing
 #' parameter is estimated from the data
@@ -45,6 +47,7 @@ fitModelAcrossImages <- function(spe,
                                 formula,
                                 family = spatstat.model::dppGauss(),
                                 threshold = NULL,
+                                interaction = "Fiksel",
                                 cellspacing = NA,
                                 ncores = 1,
                                 verbose = TRUE,
