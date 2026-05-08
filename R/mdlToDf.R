@@ -30,7 +30,7 @@ mdlToDf <- function(mdlLs,
     if(is.null(mdl)){
       return(NULL)
     }else{
-      dfCoef <- stats::coef(summary(mdl))
+      dfCoef <- try(stats::coef(summary(mdl)))
       dfCoef$covariate <- rownames(dfCoef)
       imageCovariateDf <- mdl$colData |> subset(,colnames(mdl$colData) %in% imageCovariates) |> unique()
       dfCoef <- cbind(dfCoef, imageCovariateDf)

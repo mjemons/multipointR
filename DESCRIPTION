@@ -1,9 +1,13 @@
 Package: multipointR
 Title: A package to compare intensities of point patterns across samples with spatial parametric models
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R:c( 
     person("Martin", "Emons", , "martin.emons@uzh.ch", role = c("aut", "cre"),
-           comment = c(ORCID = "0009-0000-5219-5311"))
+           comment = c(ORCID = "0009-0000-5219-5311")),
+    person("Wolfgang", "Huber", , role="aut",
+            comment = c(ORCID = "0000-0002-0474-2218")),
+    person("Mark D.", "Robinson", , "mark.robinson@mls.uzh.ch", role = c("aut", "fnd"),
+           comment = c(ORCID = "0000-0002-3048-5518")))
 Description: What the package does (one paragraph).
 License: GPL (>= 3)
 Encoding: UTF-8
@@ -17,7 +21,8 @@ Imports:
     spatstat.model,
     formula.tools, 
     mgcv,
-    dplyr
+    dplyr,
+    reformulas
 biocViews: Software, Spatial, Transcriptomics
 Suggests: 
     knitr,

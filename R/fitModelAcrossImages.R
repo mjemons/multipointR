@@ -1,5 +1,67 @@
-#' Fit point process models across all images in the
-#' `SpatialExperiment` object
+#' fit $n$ univariate Models for all $n$ images
+#'
+#' @param spe `SpatialExperiment`; object subset to a single image
+#' @param imageId `character`; column in the colData of the `SpatialExperiment`
+#' object specifying the image ID
+#' @param imageLs `list`; a list specifying the subset of all images. If `NULL`
+#' then all images are considered
+#' @param model `character`; the `spatstat.model` function to use for computation.
+#' Typically one of `ppm`, `kppm` or `dppm`.
+#' @param marks `character`; the column with the labels e.g. cell types
+#' @param formula `formula`; the formula to pass to the `ppm` function
+#' @param family `detpointprocfamily`; Family to use in the point process model.
+#' One of `dppGauss`, `dppMatern`, `dppCauchy`, `dppBessel` or `dppPowerExp`
+#' @param threshold `numeric`; a threshold to apply on the minimum number of
+#' points a point pattern needs to have to fit a `ppm` model to it.
+#' @param lambda `im` or `NULL`; offset of the intensity to include in the model to account for
+#' the underlying inhomogeneity. If this is not user provided, will be estimated
+#'  as inhomogeneous intensity via diggle correction
+#' @param interaction `character`; Formula specifying whether to fit a `Hardcore`,
+#' `Strauss`, `StraussHard` or `Fiksel` process to the data
+#' @param cellspacing `numeric` how much spacing should be accounted for in the 
+#' Hardcore process due to the cell body. If this is not provided, the cell spacing
+#' parameter is estimated from the data
+#' @param ncores `numeric`; the number of cores to used for parallel processing
+#' @param verbose `logical`; whether to print informations on the fitting
+#' @param ... other parameters passed on to `dppm` model from `spatstat.model`
+#'
+#' @returns `mppm` object of the shared fit across all images
+#'
+#' @export
+#' @examples
+.fitSingelModelsPerImage <- function(spe,
+                                    model,
+                                    imageId,
+                                    imageLs,
+                                    marks,
+                                    formula,
+                                    family,
+                                    threshold,
+                                    interaction,
+                                    lambda,
+                                    cellspacing,
+                                    ncores,
+                                    verbose,
+                                    ...){
+  mdlLs <- parallel::mclapply(imageLs, function(image){
+    speSub <- spe[, colData(spe)[[imageId]] == image]
+    if(verbose){
+      message(paste0("Fitting ", model, " to image ", image))
+    }
+    mdl <- fitModel(spe = speSub,
+                    model = model,
+                    marks = marks,
+                    formula = formula,
+                    family = family,
+                    threshold = threshold,
+                    cellspacing = cellspacing,
+                    ...)
+    return(mdl)
+  }, mc.cores = ncores)
+  return(mdlLs)
+}
+
+#' fit a shared univariate Models for all $n$ images simultaneously
 #'
 #' @param spe `SpatialExperiment`; object subset to a single image
 #' @param imageId `character`; column in the colData of the `SpatialExperiment`
@@ -16,6 +78,9 @@
 #' points a point pattern needs to have to fit a `ppm` model to it.
 #' @param interaction `character`; Formula specifying whether to fit a `Hardcore`,
 #' `Strauss`, `StraussHard` or `Fiksel` process to the data
+#' @param lambda `im` or `NULL`; offset of the intensity to include in the model to account for
+#' the underlying inhomogeneity. If this is not user provided, will be estimated
+#'  as inhomogeneous intensity via diggle correction 
 #' @param cellspacing `numeric` how much spacing should be accounted for in the 
 #' Hardcore process due to the cell body. If this is not provided, the cell spacing
 #' parameter is estimated from the data
@@ -23,7 +88,108 @@
 #' @param verbose `logical`; whether to print informations on the fitting
 #' @param ... other parameters passed on to `dppm` model from `spatstat.model`
 #'
-#' @returns `list`; result from a `dppm` model in `spatstat.model`
+#' @returns list`; result from a `ppm` model in `spatstat.model`
+#'
+#' @export
+#' @examples
+.fitSharedModelAcrossImages <- function(spe,
+                                        model = "mppm",
+                                        imageId,
+                                        imageLs,
+                                        marks,
+                                        formula,
+                                        family,
+                                        threshold,
+                                        interaction,
+                                        lambda,
+                                        cellspacing,
+                                        ncores,
+                                        verbose,
+                                        ...){
+  #create a hyperframe object
+  list_of_lists <- lapply(imageLs, function(image){
+    speSub <- spe[, colData(spe)[[imageId]] == image]
+    response <- as.character(formula.tools::lhs(formula))
+
+    #deparse the Formula and extract the data
+    out <- deparseFormula(spe = speSub,
+                          response = response,
+                          formula = formula,
+                          marks = marks,
+                          lambda = lambda, 
+                          threshold = threshold)
+    #if the output of the deparsing is NULL, return a NULL model
+    if(is.null(out)){
+      return(NULL)
+    }
+    #parametrise the interaction model
+    interactionModel <- defineInteractionModel(interaction = interaction,
+                                              cellspacing = cellspacing,
+                                              response = response,
+                                              data = out[["data"]])
+    
+    return(c(out[["data"]], list(formula = out[["formula"]], interact = interactionModel)))
+  })
+  ### code from Claude.ai
+  # Transpose: list of rows -> list of columns
+  cols <- do.call(Map, c(list(list), list_of_lists))
+
+  # Build hyperframe
+  hf <- do.call(spatstat.geom::hyperframe, cols)
+  ### end of code from Claude.ai
+  formula <- hf[["formula"]] |> unique()
+  #the formula is nested, take it apart
+  formula <- formula[[1]]
+  #extract the lhs of the formula as response
+  response <- as.character(formula.tools::lhs(formula))
+  #for mppm we need to separate fixed from random effects
+  fixedEffects <- reformulas::nobars(formula)
+  feFormula <- stats::as.formula(paste(deparse(fixedEffects)), env = baseenv())
+  randomEffects <- reformulas::findbars(formula)[[1]]
+  reFormula <- stats::as.formula(paste("~", deparse(randomEffects)), env = baseenv())
+  
+  if(is.null(randomEffects)){
+    #mdl <- spatstat.model::mppm(formula=formula, data=hf, interaction = as.hyperframe(hf[["interact"]]))
+  }else{
+    #mdl <- spatstat.model::mppm(formula=feFormula, random = reFormula, data=hf, interaction = as.hyperframe(hf[["interact"]]))
+  }
+  return(hf)
+}
+
+#' Fit point process models across all images in the
+#' `SpatialExperiment` object
+#'
+#' @param spe `SpatialExperiment`; object subset to a single image
+#' @param imageId `character`; column in the colData of the `SpatialExperiment`
+#' object specifying the image ID
+#' @param imageLs `list`; a list specifying the subset of all images. If `NULL`
+#' then all images are considered
+#' @param model `character`; the `spatstat.model` function to use for computation.
+#' Typically one of `ppm`, `kppm` or `dppm`.
+#' @param marks `character`; the column with the labels e.g. cell types
+#' @param formula `formula`; the formula to pass to the `ppm` function
+#' @param family `detpointprocfamily`; Family to use in the point process model.
+#' One of `dppGauss`, `dppMatern`, `dppCauchy`, `dppBessel` or `dppPowerExp`
+#' @param threshold `numeric`; a threshold to apply on the minimum number of
+#' points a point pattern needs to have to fit a `ppm` model to it.
+#' @param lambda `im` or `NULL`; offset of the intensity to include in the model to account for
+#' the underlying inhomogeneity. If this is not user provided, will be estimated
+#'  as inhomogeneous intensity via diggle correction
+#' @param interaction `character`; Formula specifying whether to fit a `Hardcore`,
+#' `Strauss`, `StraussHard` or `Fiksel` process to the data
+#' @param cellspacing `numeric` how much spacing should be accounted for in the 
+#' Hardcore process due to the cell body. If this is not provided, the cell spacing
+#' parameter is estimated from the data
+#' @param ncores `numeric`; the number of cores to used for parallel processing
+#' @param lambda `im` or `NULL`; offset of the intensity to include in the model to account for
+#' the underlying inhomogeneity. If this is not user provided, will be estimated
+#'  as inhomogeneous intensity via diggle correction
+#' @param sharedModel `logical`; whether or not to fit one univariate model
+#' per image ($n$ models in total) or estimate one shared univariate model across all images.
+#' @param verbose `logical`; whether to print informations on the fitting
+#' @param ... other parameters passed on to `dppm` model from `spatstat.model`
+#'
+#' @returns `list`; result from a `ppm` model in `spatstat.model` or a `mppm` model
 #' @export
 #'
 #' @examples
@@ -49,6 +215,8 @@ fitModelAcrossImages <- function(spe,
                                 threshold = NULL,
                                 interaction = "Fiksel",
                                 cellspacing = NA,
+                                lambda = NULL,
+                                sharedModel = FALSE,
                                 ncores = 1,
                                 verbose = TRUE,
                                 ...){
@@ -56,20 +224,39 @@ fitModelAcrossImages <- function(spe,
     imageLs <- spe[[imageId]] |> unique() |> as.factor()
   }
 
-  mdlLs <- parallel::mclapply(imageLs, function(image){
-    speSub <- spe[, colData(spe)[[imageId]] == image]
-    if(verbose){
-      message(paste0("Fitting ", model, " to image ", image))
-    }
-    mdl <- fitModel(spe = speSub,
-                    model = model,
-                    marks = marks,
-                    formula = formula,
-                    family = family,
-                    threshold = threshold,
-                    cellspacing = cellspacing,
-                    ...)
-    return(mdl)
-  }, mc.cores = ncores)
-  return(mdlLs)
+  if(sharedModel){
+    out <- .fitSharedModelAcrossImages(spe,
+                                      model = "mppm",
+                                      imageId = imageId,
+                                      imageLs = imageLs,
+                                      marks = marks,
+                                      formula = formula,
+                                      family = family,
+                                      threshold = threshold,
+                                      interaction = interaction,
+                                      lambda = lambda,
+                                      cellspacing = cellspacing,
+                                      ncores = ncores,
+                                      verbose = verbose,
+                                      ...
+
+    )
+  }else{
+    out <- .fitSingelModelsPerImage(spe,
+                                    model = model,
+                                    imageId = imageId,
+                                    imageLs = imageLs,
+                                    marks = marks,
+                                    formula = formula,
+                                    family = family,
+                                    threshold = threshold,
+                                    interaction = interaction,
+                                    lambda = lambda,
+                                    cellspacing = cellspacing,
+                                    ncores = ncores,
+                                    verbose = verbose,
+                                    ...
+    )
+  }
+  return(out)
 }

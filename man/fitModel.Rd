@@ -35,7 +35,7 @@ One of \code{dppGauss}, \code{dppMatern}, \code{dppCauchy}, \code{dppBessel} or 
 points a point pattern needs to have to fit a \code{ppm} model to it.}
 
 \item{interaction}{\code{character}; Formula specifying whether to fit a \code{Hardcore},
-\code{Strauss}, or \code{StraussHard} process to the data}
+\code{Strauss}, \code{Fiksel} or \code{StraussHard} process to the data}
 
 \item{lambda}{\code{im} or \code{NULL}; offset of the intensity to include in the model to account for
 the underlying inhomogeneity. If this is not user provided, will be estimated
