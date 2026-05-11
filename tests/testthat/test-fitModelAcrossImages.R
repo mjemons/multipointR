@@ -32,7 +32,7 @@ test_that("fitModelAcrossImages works as shared model with interactions", {
                 marks = "cellType",
                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
                 threshold = 10)
-  expect_true(!is.null(mdlLs$Inter$interaction))
+  expect_true(!is.null(mdl$Inter$interaction))
 })
 
 test_that("fitModelAcrossImages works as shared model with random effects", {
