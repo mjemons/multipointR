@@ -39,3 +39,23 @@ test_that("fitModel returns NULL as model if the covariate is absent", {
                   threshold = 10)
   expect_true(is.null(mdl))
 })
+
+test_that("fitModel works with interactions", {
+  speSub <- subset(spe, , imageID == "15")
+
+  mdl <- fitModel(spe = speSub,
+                  marks = "cellType",
+                  formula = as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(Endothelial))"),
+                  threshold = 10)
+  expect_true(!is.null(mdl$interaction))
+})
+
+test_that("fitModel works with offset", {
+  speSub <- subset(spe, , imageID == "15")
+
+  mdl <- fitModel(spe = speSub,
+                marks = "cellType",
+                formula = as.formula("Keratin_Tumour ~ offset(log(lambda)) + distfun(Endothelial)")
+)
+  expect_true(!is.null(mdl$interaction))
+})

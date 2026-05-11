@@ -15,6 +15,7 @@
 #'                 imageId = "imageID",
 #'                 imageLs = list("1", "2"),
 #'                 marks = "cellType",
+#'                 sharedModel = FALSE,
 #'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
 #'                 threshold = 10)
 #' 

@@ -144,16 +144,23 @@
   response <- as.character(formula.tools::lhs(formula))
   #for mppm we need to separate fixed from random effects
   fixedEffects <- reformulas::nobars(formula)
-  feFormula <- stats::as.formula(paste(deparse(fixedEffects)), env = baseenv())
-  randomEffects <- reformulas::findbars(formula)[[1]]
-  reFormula <- stats::as.formula(paste("~", deparse(randomEffects)), env = baseenv())
+  randomEffects <- reformulas::findbars(formula)
   
   if(is.null(randomEffects)){
-    #mdl <- spatstat.model::mppm(formula=formula, data=hf, interaction = as.hyperframe(hf[["interact"]]))
+    mdl <- spatstat.model::mppm(formula=formula, 
+      data=hf, 
+      interaction = as.hyperframe(Interaction = hf[["interact"]]))
   }else{
-    #mdl <- spatstat.model::mppm(formula=feFormula, random = reFormula, data=hf, interaction = as.hyperframe(hf[["interact"]]))
+    #build the two formulae for fixed and random effects
+    feFormula <- stats::as.formula(paste(deparse(fixedEffects)), env = baseenv())
+    reFormula <- stats::as.formula(
+                paste("~", paste0("(", sapply(randomEffects, deparse), ")", collapse = " + ")), env = baseenv()
+    )
+    mdl <- spatstat.model::mppm(formula=feFormula, 
+      random = reFormula, data=hf,
+      interaction = as.hyperframe(hf[["interact"]]))
   }
-  return(hf)
+  return(mdl)
 }
 
 #' Fit point process models across all images in the
@@ -195,7 +202,7 @@
 #' @examples
 #' spe <- SpatialDatasets::spe_Keren_2018()
 #'
-#' mdlLs <- fitModelAcrossImages(spe = spe,
+#' mdl <- fitModelAcrossImages(spe = spe,
 #'                 imageId = "imageID",
 #'                 imageLs = list("1", "2"),
 #'                 marks = "cellType",
@@ -216,7 +223,7 @@ fitModelAcrossImages <- function(spe,
                                 interaction = "Fiksel",
                                 cellspacing = NA,
                                 lambda = NULL,
-                                sharedModel = FALSE,
+                                sharedModel = TRUE,
                                 ncores = 1,
                                 verbose = TRUE,
                                 ...){

@@ -17,7 +17,7 @@ fitModelAcrossImages(
   interaction = "Fiksel",
   cellspacing = NA,
   lambda = NULL,
-  sharedModel = FALSE,
+  sharedModel = TRUE,
   ncores = 1,
   verbose = TRUE,
   ...
@@ -75,7 +75,7 @@ Fit point process models across all images in the
 \examples{
 spe <- SpatialDatasets::spe_Keren_2018()
 
-mdlLs <- fitModelAcrossImages(spe = spe,
+mdl <- fitModelAcrossImages(spe = spe,
                 imageId = "imageID",
                 imageLs = list("1", "2"),
                 marks = "cellType",

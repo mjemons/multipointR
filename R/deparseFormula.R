@@ -43,6 +43,9 @@ deparseFormula <- function(spe,
     message(paste0("There were less than ",  threshold, " points to compute an intensity on"))
         return(NULL)
   }
+  #separate random from fixed effects for formula deparsing
+  randomEffects <- reformulas::findbars(formula)
+  formula     <- reformulas::nobars(formula)
   #rhs variables of the formula
   rhs <- formula.tools::rhs(formula)
   #separate variables from terms (variable plus functions)
@@ -97,23 +100,49 @@ deparseFormula <- function(spe,
       #overwrite the variable at the changed position
       formulaVars[formula_position] <- newVar
       #new formula
-      formula <- stats::as.formula(paste(formula.tools::lhs.vars(formula)," ~ ", 
-      attr(stats::terms(formula), "variables")[attr(stats::terms(formula), "offset")+1] ,
-      "+", paste(formulaVars, collapse = "+")), env = baseenv())
+      # formula <- stats::as.formula(paste(formula.tools::lhs.vars(formula)," ~ ", 
+      # attr(stats::terms(formula), "variables")[attr(stats::terms(formula), "offset")+1] ,
+      # "+", paste(formulaVars, collapse = "+")), env = baseenv())
+      ### code optimised by claude.ai
+      offset_idx <- attr(stats::terms(formula), "offset")
+      offsetTerm <- if (!is.null(offset_idx)) {
+        deparse(attr(stats::terms(formula), "variables")[[offset_idx + 1]])
+        } else {
+        NULL
+        }
+
+      rhs <- paste(c(offsetTerm, formulaVars), collapse = " + ")
+        
+      formula <- stats::as.formula(
+        paste(formula.tools::lhs.vars(formula), "~", rhs),
+        env = parent.frame()
+      )
     }
   }
   #extract model variables that are in the point pattern marks but have not
   #been added as a covariate to the data
-  missingVars <- rhsVars[rhsVars %in% levels(pp$marks) == FALSE & 
+  missingVars <- rhsVars[rhsVars %in% levels(pp$marks) == FALSE &
                           rhsVars %in% names(data) == FALSE]
-  #extract the random effects if there are any
-  missingVars <- trimws(gsub(".*\\|", "", missingVars))
-  if(length(missingVars)==1 && missingVars %in% colnames(colData(spe))){
-    #add colData to data
-    data[[missingVars]] <- unique(colData(spe)[[missingVars]])
-  }else if (length(missingVars)>=1 ){
-    message(paste0("The covariate(s) ", missingVars, " is missing"))
-        return(NULL)
+
+  if (length(missingVars) >= 1) {
+    message(paste0("The covariate(s) ", paste(missingVars, collapse=", "), " is missing"))
+    return(NULL)
+  }
+  ### code optimised with claude.ai
+  # Handle the random effect grouping variable separately
+  if (!is.null(randomEffects)) {
+    groupVar <- trimws(gsub(".*\\|", "", deparse(randomEffects[[1]])))
+    if (groupVar %in% colnames(colData(spe))) {
+      data[[groupVar]] <- unique(colData(spe)[[groupVar]])
+    } else {
+      message(paste0("Random effect grouping variable '", groupVar, "' not found in colData"))
+      return(NULL)
+    }
+    reFormula <- stats::as.formula(
+                paste(". ~ . +", paste0("(", sapply(randomEffects, deparse), ")", collapse = " + ")), env = parent.frame()
+    )
+    
+    formula <- stats::update(formula, reFormula)
   }
   return(list(formula = formula, data = data))
 }
