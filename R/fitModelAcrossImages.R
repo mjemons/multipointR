@@ -134,6 +134,14 @@
   # Transpose: list of rows -> list of columns
   cols <- do.call(Map, c(list(list), list_of_lists))
 
+  cols <- lapply(cols, function(col) {
+    if (all(sapply(col, function(x) length(x) == 1 && (is.factor(x) || is.character(x) || is.numeric(x))))) {
+      unlist(col)
+    } else {
+      col
+    }
+  })
+
   # Build hyperframe
   hf <- do.call(spatstat.geom::hyperframe, cols)
   ### end of code from Claude.ai
@@ -145,7 +153,8 @@
   #for mppm we need to separate fixed from random effects
   fixedEffects <- reformulas::nobars(formula)
   randomEffects <- reformulas::findbars(formula)
-  
+  #hf$tumour_type <- factor(sapply(hf$tumour_type, as.character))
+  print(str(hf))
   if(is.null(randomEffects)){
     mdl <- spatstat.model::mppm(formula=formula, 
       data=hf, 

@@ -59,3 +59,13 @@ test_that("fitModel works with offset", {
 )
   expect_true(!is.null(mdl$interaction))
 })
+
+test_that("fitModel works with interaction", {
+  speSub <- subset(spe, , imageID == "15")
+
+  mdl <- fitModel(spe = speSub,
+                marks = "cellType",
+                formula = as.formula("Keratin_Tumour ~ sqrt(x):distfun(Endothelial)")
+)
+  expect_equal(is(mdl), "ppm")
+})

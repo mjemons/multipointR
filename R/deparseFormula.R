@@ -65,7 +65,7 @@ deparseFormula <- function(spe,
   }else{
     data[["lambda"]] <- lambda
   }
-
+  Vars <- c()
   for(var in levels(pp$marks)){
     if(var %in% rhsVars){
       #convert to pp object
@@ -78,8 +78,25 @@ deparseFormula <- function(spe,
       data[[paste0(fun,".",var,".")]] = do.call(fun, 
         args = list(X=ppVar,
                     x = ppVar))
-      #rename the function accordingly
-      deparsed <- formula.tools::rhs.vars(formula)
+      ### code by claude.ai
+      collect_terms <- function(expr) {
+        if (!is.call(expr)) {
+          # Base case: bare variable
+          return(deparse1(expr))
+        }
+        
+        op <- deparse1(expr[[1]])
+        
+        if (op %in% c("+", "-", "*", "/", ":")) {
+          # Binary operator — recurse into both sides
+          unlist(lapply(as.list(expr[-1]), collect_terms))
+        } else {
+          # Function call like distfun(...) — return as-is
+          deparse1(expr)
+        }
+      }
+      ### end code by claude.ai
+      deparsed <- unique(collect_terms(rhs))
       #get the position in the function
       formula_position <- which(grepl(var, deparsed))
       #string split the variable 
@@ -95,46 +112,71 @@ deparseFormula <- function(spe,
       }else{
         newVar <- paste0(fun,".",var,".")
       }
-      #get the rhs formula vars
-      formulaVars <- formula.tools::rhs.vars(formula)
-      #overwrite the variable at the changed position
-      formulaVars[formula_position] <- newVar
-      #new formula
-      # formula <- stats::as.formula(paste(formula.tools::lhs.vars(formula)," ~ ", 
-      # attr(stats::terms(formula), "variables")[attr(stats::terms(formula), "offset")+1] ,
-      # "+", paste(formulaVars, collapse = "+")), env = baseenv())
-      ### code optimised by claude.ai
-      offset_idx <- attr(stats::terms(formula), "offset")
-      offsetTerm <- if (!is.null(offset_idx)) {
-        deparse(attr(stats::terms(formula), "variables")[[offset_idx + 1]])
-        } else {
-        NULL
-        }
-
-      rhs <- paste(c(offsetTerm, formulaVars), collapse = " + ")
-        
-      formula <- stats::as.formula(
-        paste(formula.tools::lhs.vars(formula), "~", rhs),
-        env = parent.frame()
-      )
+      Vars <- c(Vars, var)
     }
   }
+  ### written by claude.ai
+  get_innermost_call <- function(term) {
+    expr <- parse(text = trimws(term))[[1]]
+    
+    # recurse until no more calls
+    while (is.call(expr)) {
+      # find the first argument that is itself a call
+      inner <- Filter(is.call, as.list(expr[-1]))
+      if (length(inner) == 0) break
+      expr <- inner[[1]]
+    }
+    return(deparse1(expr))
+  }
+  ### end code by claude.ai
+  #deparse the formula
+  deparsed <- formula |> formula.tools::rhs() |> deparse()
+  #split the terms of the formula
+  splitTerms <- strsplit(deparsed, "\\+")[[1]] |> trimws()
+  for(var in Vars){
+    #get all the instances where the evaluated spatstat function was called
+    mask <- grepl(var,splitTerms)
+    #split function from variable
+    term <- splitTerms[mask]
+    #split interactions
+    terms <- strsplit(term, "[+:*/\\\\]")[[1]] |> trimws()
+    #check again for var
+    maskTerms <- grepl(var,terms)
+    #extract the innermost function call -> this will be the spatstat function on the
+    #ppp object
+    inner <- get_innermost_call(terms[maskTerms])
+    #exchange () with "." to signal that this was already evaluated
+    inner_modified <- gsub("[()]", ".", inner)
+    #put this back in the original function
+    splitTerms[mask] <- sub(inner, inner_modified, term, fixed = TRUE)
+  }
+  formula <- as.formula(paste(formula.tools::lhs(formula), 
+                        "~", 
+                        paste(splitTerms, collapse = " + ")),
+                        env = parent.frame())
   #extract model variables that are in the point pattern marks but have not
   #been added as a covariate to the data
   missingVars <- rhsVars[rhsVars %in% levels(pp$marks) == FALSE &
                           rhsVars %in% names(data) == FALSE]
 
-  if (length(missingVars) >= 1) {
-    message(paste0("The covariate(s) ", paste(missingVars, collapse=", "), " is missing"))
-    return(NULL)
+  #extract the random effects if there are any
+  missingVars <- trimws(gsub(".*\\|", "", missingVars))
+  for (missingVar in missingVars) {
+    if (missingVar %in% colnames(colData(spe))) {
+      data[[missingVar]] <- unique(colData(spe)[[missingVar]])
+    } else {
+      message(paste0("The covariate(s) ", missingVar, " is missing"))
+      return(NULL)
+    }
   }
+
   ### code optimised with claude.ai
   # Handle the random effect grouping variable separately
-  if (!is.null(randomEffects)) {
+  if (!is.null(randomEffects)){
     groupVar <- trimws(gsub(".*\\|", "", deparse(randomEffects[[1]])))
     if (groupVar %in% colnames(colData(spe))) {
       data[[groupVar]] <- unique(colData(spe)[[groupVar]])
-    } else {
+    }else{
       message(paste0("Random effect grouping variable '", groupVar, "' not found in colData"))
       return(NULL)
     }

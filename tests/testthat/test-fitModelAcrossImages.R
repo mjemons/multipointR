@@ -45,3 +45,15 @@ test_that("fitModelAcrossImages works as shared model with random effects", {
                 threshold = 10)
   expect_true(!is.null(mdl))
 })
+
+test_that("fitModelAcrossImages works to flatten lists of list of factors into plain vectors 
+and then can fit them", {
+  mdl <- fitModelAcrossImages(spe = spe,
+                imageId = "imageID",
+                imageLs = list("1", "2", "3"),
+                marks = "cellType",
+                formula = as.formula("Keratin_Tumour ~ tumour_type + STAGE + distfun(CD8_T_cell)"),
+                threshold = 10)
+  expect_true(!is.null(mdl))
+})
+
