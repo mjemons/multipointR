@@ -28,7 +28,20 @@
 #' @returns `mppm` object of the shared fit across all images
 #'
 #' @export
-#' @examples
+#' @examples 
+#' spe <- SpatialDatasets::spe_Keren_2018()
+#' 
+#' out <- .fitSingelModelsPerImage(spe = spe,
+#'                 imageId = "imageID",
+#'                 imageLs = list("1", "2"),
+#'                 marks = "cellType",
+#'                 lambda = NULL,
+#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
+#'                 interaction = "Fiksel",
+#'                 cellspacing = NA,
+#'                 ncores = 1,
+#'                 threshold = 10)
+#' 
 .fitSingelModelsPerImage <- function(spe,
                                     model,
                                     imageId,
@@ -92,6 +105,19 @@
 #'
 #' @export
 #' @examples
+#' spe <- SpatialDatasets::spe_Keren_2018()
+#' 
+#' out <- .fitSharedModelAcrossImages(spe = spe,
+#'                 imageId = "imageID",
+#'                 imageLs = list("1", "2"),
+#'                 marks = "cellType",
+#'                 lambda = NULL,
+#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
+#'                 interaction = "Fiksel",
+#'                 cellspacing = NA,
+#'                 threshold = 10,
+#'                 verbose = TRUE)
+#' 
 .fitSharedModelAcrossImages <- function(spe,
                                         model = "mppm",
                                         imageId,
@@ -153,8 +179,6 @@
   #for mppm we need to separate fixed from random effects
   fixedEffects <- reformulas::nobars(formula)
   randomEffects <- reformulas::findbars(formula)
-  #hf$tumour_type <- factor(sapply(hf$tumour_type, as.character))
-  print(str(hf))
   if(is.null(randomEffects)){
     mdl <- spatstat.model::mppm(formula=formula, 
       data=hf, 
@@ -163,7 +187,7 @@
     #build the two formulae for fixed and random effects
     feFormula <- stats::as.formula(paste(deparse(fixedEffects)), env = baseenv())
     reFormula <- stats::as.formula(
-                paste("~", paste0("(", sapply(randomEffects, deparse), ")", collapse = " + ")), env = baseenv()
+                paste("~", paste0(sapply(randomEffects, deparse), collapse = " + ")), env = baseenv()
     )
     mdl <- spatstat.model::mppm(formula=feFormula, 
       random = reFormula, data=hf,

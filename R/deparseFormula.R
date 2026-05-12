@@ -150,7 +150,7 @@ deparseFormula <- function(spe,
     #put this back in the original function
     splitTerms[mask] <- sub(inner, inner_modified, term, fixed = TRUE)
   }
-  formula <- as.formula(paste(formula.tools::lhs(formula), 
+  formula <- stats::as.formula(paste(formula.tools::lhs(formula), 
                         "~", 
                         paste(splitTerms, collapse = " + ")),
                         env = parent.frame())
