@@ -35,27 +35,23 @@
 #'                 imageId = "imageID",
 #'                 imageLs = list("1", "2"),
 #'                 marks = "cellType",
-#'                 lambda = NULL,
 #'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
-#'                 interaction = "Fiksel",
-#'                 cellspacing = NA,
-#'                 ncores = 1,
 #'                 threshold = 10)
 #' 
 .fitSingelModelsPerImage <- function(spe,
-                                    model,
-                                    imageId,
-                                    imageLs,
-                                    marks,
-                                    formula,
-                                    family,
-                                    threshold,
-                                    interaction,
-                                    lambda,
-                                    cellspacing,
-                                    ncores,
-                                    verbose,
-                                    ...){
+                                model = "ppm",
+                                imageId,
+                                imageLs = NULL,
+                                marks,
+                                formula,
+                                family = spatstat.model::dppGauss(),
+                                threshold = NULL,
+                                interaction = "Fiksel",
+                                cellspacing = NA,
+                                lambda = NULL,
+                                ncores = 1,
+                                verbose = TRUE,
+                                ...){
   mdlLs <- parallel::mclapply(imageLs, function(image){
     speSub <- spe[, colData(spe)[[imageId]] == image]
     if(verbose){
@@ -111,27 +107,23 @@
 #'                 imageId = "imageID",
 #'                 imageLs = list("1", "2"),
 #'                 marks = "cellType",
-#'                 lambda = NULL,
 #'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
-#'                 interaction = "Fiksel",
-#'                 cellspacing = NA,
-#'                 threshold = 10,
-#'                 verbose = TRUE)
+#'                 threshold = 10)
 #' 
 .fitSharedModelAcrossImages <- function(spe,
-                                        model = "mppm",
-                                        imageId,
-                                        imageLs,
-                                        marks,
-                                        formula,
-                                        family,
-                                        threshold,
-                                        interaction,
-                                        lambda,
-                                        cellspacing,
-                                        ncores,
-                                        verbose,
-                                        ...){
+                                model = "ppm",
+                                imageId,
+                                imageLs = NULL,
+                                marks,
+                                formula,
+                                family = spatstat.model::dppGauss(),
+                                threshold = NULL,
+                                interaction = "Fiksel",
+                                cellspacing = NA,
+                                lambda = NULL,
+                                ncores = 1,
+                                verbose = TRUE,
+                                ...){
   #create a hyperframe object
   list_of_lists <- lapply(imageLs, function(image){
     speSub <- spe[, colData(spe)[[imageId]] == image]

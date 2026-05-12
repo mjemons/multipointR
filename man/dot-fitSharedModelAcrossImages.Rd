@@ -6,18 +6,18 @@
 \usage{
 .fitSharedModelAcrossImages(
   spe,
-  model = "mppm",
+  model = "ppm",
   imageId,
-  imageLs,
+  imageLs = NULL,
   marks,
   formula,
-  family,
-  threshold,
-  interaction,
-  lambda,
-  cellspacing,
-  ncores,
-  verbose,
+  family = spatstat.model::dppGauss(),
+  threshold = NULL,
+  interaction = "Fiksel",
+  cellspacing = NA,
+  lambda = NULL,
+  ncores = 1,
+  verbose = TRUE,
   ...
 )
 }
@@ -46,13 +46,13 @@ points a point pattern needs to have to fit a \code{ppm} model to it.}
 \item{interaction}{\code{character}; Formula specifying whether to fit a \code{Hardcore},
 \code{Strauss}, \code{StraussHard} or \code{Fiksel} process to the data}
 
-\item{lambda}{\code{im} or \code{NULL}; offset of the intensity to include in the model to account for
-the underlying inhomogeneity. If this is not user provided, will be estimated
-as inhomogeneous intensity via diggle correction}
-
 \item{cellspacing}{\code{numeric} how much spacing should be accounted for in the
 Hardcore process due to the cell body. If this is not provided, the cell spacing
 parameter is estimated from the data}
+
+\item{lambda}{\code{im} or \code{NULL}; offset of the intensity to include in the model to account for
+the underlying inhomogeneity. If this is not user provided, will be estimated
+as inhomogeneous intensity via diggle correction}
 
 \item{ncores}{\code{numeric}; the number of cores to used for parallel processing}
 
@@ -65,4 +65,15 @@ list\verb{; result from a }ppm\verb{model in}spatstat.model`
 }
 \description{
 fit a shared univariate Models for all $n$ images simultaneously
+}
+\examples{
+spe <- SpatialDatasets::spe_Keren_2018()
+
+out <- .fitSharedModelAcrossImages(spe = spe,
+                imageId = "imageID",
+                imageLs = list("1", "2"),
+                marks = "cellType",
+                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
+                threshold = 10)
+
 }
