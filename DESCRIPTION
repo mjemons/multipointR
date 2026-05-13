@@ -22,7 +22,8 @@ Imports:
     formula.tools, 
     mgcv,
     dplyr,
-    reformulas
+    reformulas,
+    S4Vectors
 biocViews: Software, Spatial, Transcriptomics
 Suggests: 
     knitr,

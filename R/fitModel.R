@@ -54,6 +54,11 @@ fitModel <- function(spe,
   stopifnot(is(spe, "SpatialExperiment"))
   stopifnot(is(marks, "character"))
 
+  #we do not need the assays anymore, therefore we set them to NULL
+  SummarizedExperiment::assays(spe) <- list()
+  #for computational reasons, remove the rowData as we don't need them
+  SummarizedExperiment::rowData(spe) <- S4Vectors::DataFrame(row.names = rownames(spe))
+
   #define the response
   response <- as.character(formula.tools::lhs(formula))
  

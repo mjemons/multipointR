@@ -58,7 +58,7 @@ as inhomogeneous intensity via diggle correction}
 
 \item{verbose}{\code{logical}; whether to print informations on the fitting}
 
-\item{...}{other parameters passed on to \code{dppm} model from \code{spatstat.model}}
+\item{...}{other parameters passed on to \code{mppm} model from \code{spatstat.model}}
 }
 \value{
 list\verb{; result from a }ppm\verb{model in}spatstat.model`

@@ -95,7 +95,7 @@
 #' parameter is estimated from the data
 #' @param ncores `numeric`; the number of cores to used for parallel processing
 #' @param verbose `logical`; whether to print informations on the fitting
-#' @param ... other parameters passed on to `dppm` model from `spatstat.model`
+#' @param ... other parameters passed on to `mppm` model from `spatstat.model`
 #'
 #' @returns list`; result from a `ppm` model in `spatstat.model`
 #'
@@ -124,6 +124,10 @@
                                 ncores = 1,
                                 verbose = TRUE,
                                 ...){
+  #we do not need the assays anymore, therefore we set them to NULL
+  SummarizedExperiment::assays(spe) <- list()
+  #for computational reasons, remove the rowData as we don't need them
+  SummarizedExperiment::rowData(spe) <- S4Vectors::DataFrame(row.names = rownames(spe))
   #create a hyperframe object
   list_of_lists <- lapply(imageLs, function(image){
     speSub <- spe[, colData(spe)[[imageId]] == image]
@@ -152,16 +156,21 @@
   # Transpose: list of rows -> list of columns
   cols <- do.call(Map, c(list(list), list_of_lists))
 
+  #the columns for anything else than `ppp` or `interaction` or `im` objects have to be flat
+  #therefore, unlist them 
   cols <- lapply(cols, function(col) {
     if (all(sapply(col, function(x) length(x) == 1 && (is.factor(x) || is.character(x) || is.numeric(x))))) {
-      unlist(col)
+      return(unlist(col))
     } else {
-      col
+      return(col)
     }
   })
 
   # Build hyperframe
   hf <- do.call(spatstat.geom::hyperframe, cols)
+  # remove the coordinates as these are in the `ppp` object already
+  hf[["x"]] <- NULL
+  hf[["y"]] <- NULL
   ### end of code from Claude.ai
   formula <- hf[["formula"]] |> unique()
   #the formula is nested, take it apart
@@ -174,7 +183,8 @@
   if(is.null(randomEffects)){
     mdl <- spatstat.model::mppm(formula=formula, 
       data=hf, 
-      interaction = as.hyperframe(Interaction = hf[["interact"]]))
+      interaction = as.hyperframe(Interaction = hf[["interact"]]),
+      ...)
   }else{
     #build the two formulae for fixed and random effects
     feFormula <- stats::as.formula(paste(deparse(fixedEffects)), env = baseenv())
@@ -183,7 +193,8 @@
     )
     mdl <- spatstat.model::mppm(formula=feFormula, 
       random = reFormula, data=hf,
-      interaction = as.hyperframe(hf[["interact"]]))
+      interaction = as.hyperframe(hf[["interact"]]),
+      ...)
   }
   return(mdl)
 }
