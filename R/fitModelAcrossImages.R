@@ -46,7 +46,7 @@
                                 formula,
                                 family = spatstat.model::dppGauss(),
                                 threshold = NULL,
-                                interaction = "Fiksel",
+                                interaction = "StraussHard",
                                 cellspacing = NA,
                                 lambda = NULL,
                                 ncores = 1,
@@ -63,7 +63,11 @@
                     formula = formula,
                     family = family,
                     threshold = threshold,
+                    interaction = interaction,
+                    lambda = lambda,
                     cellspacing = cellspacing,
+                    ncores = ncores,
+                    verbose = verbose,
                     ...)
     return(mdl)
   }, mc.cores = ncores)

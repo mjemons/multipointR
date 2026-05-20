@@ -52,7 +52,7 @@ knitr::opts_chunk$set(
 
 `r BiocStyle::Biocpkg('multipointR')` can be installed and loaded from Bioconductor as follows
 
-```{r installation, include=TRUE, eval=FALSE}
+```{r installation, include=FALSE, eval=FALSE}
 if (!requireNamespace("BiocManager")) {
     install.packages("BiocManager")
 }
@@ -258,10 +258,10 @@ where $r_h$ is the hard core radius (can be estimated from the data) and $r_s$ i
 Next, we will formulate a null model of the distribution of p53 positive cells. For this model we will specify an inhomogeneous intensity varying with a bivariate spline model of $x$ and $y$. The model we fit is of the form 
 
 $$
-\lambda(u) = \exp(\beta_0) \cdot Z_0 \cdot h(u,r,\mathbf{x})
+\lambda(u) = \exp(\beta_0) \cdot Z_0(u) \cdot h(u,r,\mathbf{x})
 $$
 
-with a spatially varying intercept $\beta_0(u)$. This we specify as an offset image of the intensity $Z_0$
+with a spatially varying intercept $\beta_0(u)$. This we specify as an offset image of the intensity $Z_0(u)$
 
 ```{r, Ppm1}
 m1 <- fitModel(spe = speSub,
@@ -291,7 +291,7 @@ From biological literature we know that p53+ tumour cells have immune-modulatory
 The model is then:
 
 $$
-\lambda(u) = \exp(\beta_0 + \beta_{\text{dist}}Z_{\text{dist}}(u)) \cdot Z_0 \cdot h(u,r,\mathbf{x})
+\lambda(u) = \exp(\beta_0 + \beta_{\text{dist}}Z_{\text{dist}}(u)) \cdot Z_0(u) \cdot h(u,r,\mathbf{x})
 $$
 
 ```{r, Ppm2}
@@ -334,13 +334,18 @@ Looking at a simulated Q-Q plot of the residuals we see slightly heavy tails. Gi
 
 ## Multi-image inference
 
+### Fitting a model per image
+
 This dataset does not only contain one image. We want to fit univariate models sequentially to each image and look at the resulting distribution of the distance to immune cells coefficient $\beta_{\text{dist}}$
 
-```{r, mPpm}
+```{r, mPpmLs}
 mdlLs <- fitModelAcrossImages(spe = spe,
                 imageId = "imageID",
                 marks = "cellTypeNew",
-                formula = as.formula("p53_Tumour ~ offset(log(lambda)) + distfun(Immune)"),
+                sharedModel = FALSE,
+                use.gam = TRUE,
+                interaction = "Hardcore",
+                formula = as.formula("p53_Tumour ~ s(x,y) + distfun(Immune)"),
                 threshold = 10)
 ```
 
@@ -406,6 +411,20 @@ print(summary(mdl))
 ```
 
 We note a significantly weakly positive effect for both compartmentalised and mixed tumours in comparison to cold tumours.
+
+### Fitting a shared model across images
+
+We can also fit a shared model across all images. In that case, we parametrise an interaction effect between the tumour type and the distance to immune cells. Furthermore, we specify a random intercept per sample ID
+
+```{r, mPpm}
+mdl <- fitModelAcrossImages(spe = spe,
+                imageId = "imageID",
+                imageLs = seq(1,10),
+                marks = "cellType",
+                formula = as.formula("Keratin_Tumour ~ offset(log(lambda)) + tumour_type:distfun(CD8_T_cell)"),
+                threshold = 5)
+mdl |> summary()
+```
 
 
 
