@@ -60,7 +60,12 @@ deparseFormula <- function(spe,
   #if this is not provided, calculate it, else take the user
   #provided offset
   if(is.null(lambda)){
-    lambda  <- stats::density(ppResponse, sigma = spatstat.explore::bw.ppl(ppResponse), positive = TRUE)
+    lambda  <- spatstat.explore::density.ppp(ppResponse, 
+      sigma = spatstat.explore::bw.ppl(ppResponse), 
+      positive = TRUE, 
+      diggle = TRUE,
+      edge = TRUE,
+      kernel = "gaussian")
     data[["lambda"]] <- lambda
   }else{
     data[["lambda"]] <- lambda
@@ -154,14 +159,16 @@ deparseFormula <- function(spe,
                         "~", 
                         paste(splitTerms, collapse = " + ")),
                         env = parent.frame())
-  #extract model variables that are in the point pattern marks but have not
+  #extract model variables that are not in the point pattern marks and have not
   #been added as a covariate to the data
   missingVars <- rhsVars[rhsVars %in% levels(pp$marks) == FALSE &
                           rhsVars %in% names(data) == FALSE]
 
-  #extract the random effects if there are any
-  missingVars <- trimws(gsub(".*\\|", "", missingVars))
+  #check wether the missingVars are in the colData of the `spe` 
+  #TODO: add an option to check here for `annotGeometries` in 
+  #an `sfe` object -> could be a way to store segmented regions
   for (missingVar in missingVars) {
+    #check wether the missingVar is in the colData of the `spe` 
     if (missingVar %in% colnames(colData(spe))) {
       data[[missingVar]] <- unique(colData(spe)[[missingVar]])
     } else {

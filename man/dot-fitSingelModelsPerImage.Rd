@@ -13,7 +13,7 @@
   formula,
   family = spatstat.model::dppGauss(),
   threshold = NULL,
-  interaction = "Fiksel",
+  interaction = "StraussHard",
   cellspacing = NA,
   lambda = NULL,
   ncores = 1,
