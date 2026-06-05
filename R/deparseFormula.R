@@ -171,6 +171,11 @@ deparseFormula <- function(spe,
     #check wether the missingVar is in the colData of the `spe` 
     if (missingVar %in% colnames(colData(spe))) {
       data[[missingVar]] <- unique(colData(spe)[[missingVar]])
+    #if the provided object is a `sfe` check whether the missing variable
+    #is in the annotation geometries -> TODO: add tests for this
+    } else if (is(spe, "SpatialFeatureExperiment")
+    && missingVar %in% names(SpatialFeatureExperiment::annotGeometries(spe))){
+      data[[missingVar]] <- SpatialFeatureExperiment::annotGeometry(spe, missingVar)
     } else {
       message(paste0("The covariate(s) ", missingVar, " is missing"))
       return(NULL)

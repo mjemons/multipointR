@@ -24,7 +24,8 @@ Imports:
     mgcv,
     dplyr,
     reformulas,
-    S4Vectors
+    S4Vectors,
+    SpatialFeatureExperiment
 biocViews: Software, Spatial, Transcriptomics
 Suggests: 
     knitr,
