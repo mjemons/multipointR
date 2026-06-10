@@ -46,8 +46,12 @@ defineInteractionModel <- function(interaction,
     cellspacing <- minNnDist * nX/(nX+1)
   }
   ### end of directly adapted code ### 
-
-  if(interaction == "Strauss"){
+  if(is.null(interaction)){
+    interactionModel <- interaction
+    message(paste0("You have specified a Poisson process - make sure that the assumption 
+    of physical overlap is justified in your data"))
+  }
+  else if(interaction == "Strauss"){
     interactionModel <- spatstat.model::Strauss(r = cellspacing)
   }else if(interaction == "Hardcore"){
     interactionModel <- spatstat.model::Hardcore(hc = cellspacing)

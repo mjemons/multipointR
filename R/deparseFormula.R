@@ -165,14 +165,12 @@ deparseFormula <- function(spe,
                           rhsVars %in% names(data) == FALSE]
 
   #check wether the missingVars are in the colData of the `spe` 
-  #TODO: add an option to check here for `annotGeometries` in 
-  #an `sfe` object -> could be a way to store segmented regions
   for (missingVar in missingVars) {
     #check wether the missingVar is in the colData of the `spe` 
     if (missingVar %in% colnames(colData(spe))) {
       data[[missingVar]] <- unique(colData(spe)[[missingVar]])
     #if the provided object is a `sfe` check whether the missing variable
-    #is in the annotation geometries -> TODO: add tests for this
+    #is in the annotation geometries
     } else if (is(spe, "SpatialFeatureExperiment")
     && missingVar %in% names(SpatialFeatureExperiment::annotGeometries(spe))){
       data[[missingVar]] <- SpatialFeatureExperiment::annotGeometry(spe, missingVar)

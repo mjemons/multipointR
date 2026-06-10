@@ -46,7 +46,7 @@ fitModel <- function(spe,
                      formula,
                      family = spatstat.model::dppGauss(),
                      threshold = NULL,
-                     interaction = "StraussHard",
+                     interaction = "Fiksel",
                      lambda = NULL, 
                      cellspacing = NA,
                      ...){
