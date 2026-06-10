@@ -83,10 +83,13 @@ fitModel <- function(spe,
                                             cellspacing = cellspacing,
                                             response = response,
                                             data = data)
-
+  
+  #fix for `sf` object evaluation as suggested by Adrian Baddeley
+  transformSf <- function(z) lapply(z, function(x) { if(inherits(x, "sf")) spatstat.geom::as.owin(x) else x })
+  
   mdl <- do.call(model, 
     args = list(Q = formula,
-                data = data,
+                data = transformSf(data),
                 interaction = interactionModel,
                 ...)
   )

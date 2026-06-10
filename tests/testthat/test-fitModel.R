@@ -69,3 +69,22 @@ test_that("fitModel works with interaction", {
 )
   expect_equal(is(mdl), "ppm")
 })
+
+test_that("fitModel works with sf polygon from `sosta`", {
+  speSub <- subset(spe, , imageID == "15")
+
+  sfeSub <- SpatialFeatureExperiment::toSpatialFeatureExperiment(speSub)
+  (struct <- sosta::reconstructShapeDensityImage(
+      sfeSub,
+      marks = "cellType",
+      markSelect = c("Keratin_Tumour")
+  ))
+
+  SpatialFeatureExperiment::annotGeometry(sfeSub, "tumour_mask") <- struct
+
+  mdl <- fitModel(spe = sfeSub,
+                marks = "cellType",
+                formula = as.formula("Endothelial ~ tumour_mask")
+)
+  expect_equal(is(mdl), "ppm")
+})

@@ -24,14 +24,14 @@ Imports:
     mgcv,
     dplyr,
     reformulas,
-    S4Vectors,
-    SpatialFeatureExperiment
+    S4Vectors
 biocViews: Software, Spatial, Transcriptomics
 Suggests: 
     knitr,
+    SpatialFeatureExperiment,
     rmarkdown,
     SpatialDatasets,
-    spatstat.explore,
+    sosta,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
