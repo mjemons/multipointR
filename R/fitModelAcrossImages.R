@@ -267,6 +267,22 @@ fitModelAcrossImages <- function(spe,
                                 ncores = 1,
                                 verbose = TRUE,
                                 ...){
+  #some type assertions
+  stopifnot(
+    is(spe, "SpatialExperiment"),
+    is.character(model),
+    is.character(imageId),
+    is.null(imageLs) || is.vector(imageLs),
+    is.character(marks),
+    is(formula, "formula"),
+    is.null(threshold) || is.numeric(threshold),
+    is.character(interaction),
+    is.na(cellspacing) || is.numeric(cellspacing),
+    is.null(lambda) || is(lambda, "im"),
+    is.logical(sharedModel),
+    is.numeric(ncores),
+    is.logical(verbose)
+  )
   if(is.null(imageLs)){
     imageLs <- spe[[imageId]] |> unique() |> as.factor()
   }

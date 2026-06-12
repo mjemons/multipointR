@@ -37,6 +37,7 @@ biocViews: Software, Spatial, Transcriptomics
 Suggests: 
     knitr,
     BiocStyle,
+    ggplot2,
     SpatialFeatureExperiment,
     rmarkdown,
     SpatialDatasets,

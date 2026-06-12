@@ -27,6 +27,10 @@ devtools::install_github("mjemons/multipointR")
 This package is still under active development, the content is therefore
 subject to change. 
 
+Parts of this code were optimised and/or generated with claude.ai. 
+Whenever claude.ai made significant contributions to a code chunk 
+I tried my best to acknowledge this as comments in the code.
+
 ## Contact
 
 In case you have suggestions to `multipointR` please consider opening an

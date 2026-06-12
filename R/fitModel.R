@@ -51,8 +51,15 @@ fitModel <- function(spe,
                      cellspacing = NA,
                      ...){
   #some type assertions
-  stopifnot(is(spe, "SpatialExperiment"))
-  stopifnot(is(marks, "character"))
+  stopifnot(
+      is(spe, "SpatialExperiment"),
+      is.character(marks),
+      is(formula, "formula"),
+      is.null(threshold) || is.numeric(threshold),
+      is.character(interaction),
+      is.null(lambda) || is(lambda, "im"),
+      is.na(cellspacing) || is.numeric(cellspacing)
+  )
 
   #we do not need the assays anymore, therefore we set them to NULL
   SummarizedExperiment::assays(spe) <- list()
