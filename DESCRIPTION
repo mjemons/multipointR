@@ -13,10 +13,10 @@ Description: `multipointR` is a package to compare the distribution of cells in 
             model the spatial distribution of a cell type point pattern as a function of spatial covariates
             while accounting for natural spacing of cells. The main model class considered in `multipointR` 
             are inhomgoeneous Gibb's point process models.
-            Across multiple images, user can either compare multiple univariate `ppm` models in a for loop or 
+            Across multiple images, users can either compare multiple univariate `ppm` models in a for loop or 
             fit one joint model across all images with `mppm`. 
             `multipointR` provides an interface between `SpatialExperiment` and `SpatialFeatureExperiment` objects
-            and let's user flexibly define their own `ppm`/`mppm` models with R's formula interface. 
+            and let's users flexibly define their own `ppm`/`mppm` models with R's formula interface. 
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -36,6 +36,7 @@ Imports:
 biocViews: Software, Spatial, Transcriptomics
 Suggests: 
     knitr,
+    BiocStyle,
     SpatialFeatureExperiment,
     rmarkdown,
     SpatialDatasets,
