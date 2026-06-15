@@ -38,6 +38,7 @@ Suggests:
     knitr,
     BiocStyle,
     ggplot2,
+    patchwork,
     SpatialFeatureExperiment,
     rmarkdown,
     SpatialDatasets,
