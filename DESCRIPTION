@@ -31,13 +31,13 @@ Imports:
     formula.tools, 
     mgcv,
     dplyr,
+    ggplot2,
     reformulas,
     S4Vectors
 biocViews: Software, Spatial, Transcriptomics
 Suggests: 
     knitr,
     BiocStyle,
-    ggplot2,
     patchwork,
     SpatialFeatureExperiment,
     rmarkdown,
@@ -45,4 +45,5 @@ Suggests:
     sosta,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Depends: R (>= 4.1.0)
 VignetteBuilder: knitr
