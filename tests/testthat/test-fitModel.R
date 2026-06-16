@@ -8,7 +8,8 @@ test_that("fitModel works with treshold", {
                   marks = "cellType",
                   formula = as.formula("Keratin_Tumour ~ 1"),
                   threshold = 10)
-  expect_equal(is(mdl), "ppm")
+  expect_equal(is(mdl), "multipointRppm")
+  expect_true(verifyclass(mdl, "ppm"))
 })
 
 test_that("fitModel fails with incorrect formula", {
@@ -27,7 +28,8 @@ test_that("fitModel works with mixed formulas of changed and unchanged functions
                   marks = "cellType",
                   formula = as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(Endothelial))"),
                   threshold = 10)
-  expect_equal(is(mdl), "ppm")
+  expect_equal(is(mdl), "multipointRppm")
+  expect_true(verifyclass(mdl, "ppm"))
 })
 
 test_that("fitModel returns NULL as model if the covariate is absent", {
@@ -67,7 +69,8 @@ test_that("fitModel works with interaction", {
                 marks = "cellType",
                 formula = as.formula("Keratin_Tumour ~ sqrt(x):distfun(Endothelial)")
 )
-  expect_equal(is(mdl), "ppm")
+  expect_equal(is(mdl), "multipointRppm")
+  expect_true(verifyclass(mdl, "ppm"))
 })
 
 test_that("fitModel works with sf polygon from `sosta`", {
@@ -86,5 +89,6 @@ test_that("fitModel works with sf polygon from `sosta`", {
                 marks = "cellType",
                 formula = as.formula("Endothelial ~ tumour_mask")
 )
-  expect_equal(is(mdl), "ppm")
+  expect_equal(is(mdl), "multipointRppm")
+  expect_true(verifyclass(mdl, "ppm"))
 })

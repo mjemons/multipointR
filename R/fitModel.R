@@ -102,5 +102,52 @@ fitModel <- function(spe,
   )
   #add covariates to the mdl list
   mdl$colData <- colData(spe)
+  class(mdl) <- c("multipointRppm", class(mdl))
   return(mdl)
+}
+
+
+#' Plot mulitpointR `ppm` objects
+#'
+#' @param x `ppm`; a model fit with `spatstat.model::ppm` or the wrapper `multipointR::fitModel`
+#' @param type `character`; the type to plot, one of "intensity" or "trend"
+#' @param ... further arguments passed to geom_raster
+#'
+#' @returns a `ggplot2` object of the model trend/intensity surfance
+#'
+#' @examples
+#' spe <- SpatialDatasets::spe_Keren_2018()
+#' speSub <- subset(spe, , imageID == "5")
+#'
+#' mdl <- fitModel(spe = speSub,
+#'                 marks = "cellType",
+#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+#' )
+#' plot(mdl)
+#' @export
+#' @method plot multipointRppm
+#' @import dplyr ggplot2
+plot.multipointRppm <- function(x, type = "trend", ...){
+  ### coded with the help of claude.ai ###
+  stopifnot(verifyclass(x, "ppm"))
+  #extract the response `ppp` object
+  pp_df <- as.data.frame(x$Q$data)
+  #extract the trend image
+  mdl_img <- stats::predict(x, type = type)
+  #convert the image to a dataframe
+  mdl_df <- as.data.frame((mdl_img))
+
+  p <- ggplot(mdl_df, aes(x = .data[["x"]], y = .data[["y"]])) +
+  geom_raster(aes(fill = .data[["value"]])) +
+  scale_fill_viridis_c(option = "magma", name = type) +
+  geom_point(data = pp_df, aes(x = .data[["x"]], y = .data[["y"]]),
+             shape = 1,          
+             size = 1.5,
+             color = "white",   
+             stroke = 0.15) +    
+  coord_equal() +
+  theme_light() +
+  labs(title = paste0("Fitted ", type, " surface"), x = "x", y = "y")
+  
+  return(p)
 }
