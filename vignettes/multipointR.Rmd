@@ -73,6 +73,8 @@ spe <- SpatialDatasets::spe_Keren_2018()
 spe
 ```
 
+The preprocessing and visulisation of this dataset is taken from the `r BiocStyle::Biocpkg('Statial')` vignette.
+
 ```{r, plotFullDataset, fig.height=50, fig.width=15, echo=FALSE}
 # Code source: https://www.bioconductor.org/packages/release/bioc/vignettes/Statial/inst/doc/Statial.html#kontextual-identifying-discrete-changes-in-cell-state
 
@@ -364,7 +366,7 @@ segmentedTumour <- sosta::reconstructShapeDensityImage(
 )
 
 p1 + geom_sf(data = segmentedTumour, inherit.aes = FALSE,
-          fill = NA, color = "darkred", linewidth = 0.6)
+          fill = NA, color = "red", linewidth = 1)
 ```
 
 In order to save this polygon we will convert our `SpatialExperiment` object into a `SpatialFeatureExperiment` object and store it in the 

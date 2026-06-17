@@ -1,0 +1,6 @@
+^multipointR\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+.github
+.gitignore
+^\.github$
