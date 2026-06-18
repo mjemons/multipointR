@@ -73,7 +73,7 @@ spe <- SpatialDatasets::spe_Keren_2018()
 spe
 ```
 
-The preprocessing and visulisation of this dataset is taken from the `r BiocStyle::Biocpkg('Statial')` vignette.
+The preprocessing and visualisation of this dataset is taken from the `r BiocStyle::Biocpkg('Statial')` vignette.
 
 ```{r, plotFullDataset, fig.height=50, fig.width=15, echo=FALSE}
 # Code source: https://www.bioconductor.org/packages/release/bioc/vignettes/Statial/inst/doc/Statial.html#kontextual-identifying-discrete-changes-in-cell-state
@@ -138,12 +138,12 @@ patchwork::wrap_plots(p_ls, ncol = 4, guides = "collect")
 
 Plot of the entire dataset with meta-cell type labels "Immune", "Tumour" and "p53+ Tumour".
 
-# Inference with a parametric point process models
+# Inference with parametric point process models
 
 ## The inhomogeneous Poisson point process
 
 Parametric point process models (PPMs), as implemented in the `spatstat` package, model the distribution of points in space as an (in)homogeneous Poisson distribution [@baddeley2014package].
-Thus, the expected number of points falling in a region $B$ follow an inhomogneous Poisson process with rate $\lambda(u)$, the local intensity [@baddeley2016spatial]. 
+Thus, the expected number of points falling in a region $B$ follows an inhomogeneous Poisson process with rate $\lambda(u)$, the local intensity [@baddeley2016spatial]. 
 
 $$
 \mathbb{E}[n(\mathbf{X} \cap B)] = \int_B \lambda(u)du
@@ -155,11 +155,11 @@ $$
 \lambda_{\Theta}(u) = \exp(\beta_0(u) + \Theta^TZ(u))
 $$
 
-where $\beta_0(u)$ is the baseline intensity, $Z(u)$ are spatially varying covariate functions and $\Theta$ is the parameter vector to be estimated. In particular, paramters within $\Theta$ would be relevant for making inferences in order to make claims about spatial associations.
+where $\beta_0(u)$ is the baseline intensity, $Z(u)$ are spatially varying covariate functions and $\Theta$ is the parameter vector to be estimated. In particular, parameters within $\Theta$ would be relevant for making inferences in order to make claims about spatial associations.
 
 ## The Gibbs point process
 
-In the Poisson point process, points can be arbitrarily close together, which in a tissue of cells is not feasible. However, a constraint on cell co-localization can be imposed by a Gibbs point process. This class of models allows inhibitory or repulsive interactions between points to be modeled. In our case, we model the interaction between cells as a so-call "hard core" process, whereby the resulting conditional intensity at a location $u$ is given by
+In the Poisson point process, points can be arbitrarily close together, which in a tissue of cells is not feasible. However, a constraint on cell co-localization can be imposed by a Gibbs point process. This class of models allows inhibitory or repulsive interactions between points to be modeled. In our case, we model the interaction between cells as a so-called "hard core" process, whereby the resulting conditional intensity at a location $u$ is given by
 
 $$
 \lambda(u \mid \mathbf{x}) = \cases{
@@ -189,7 +189,7 @@ $$
 
 ## Single image inference
 
-For the single image case, we will analyse the relationship between the distribution of p53+ tumor cells and immune cells in image $6$.
+For the single image case, we will analyse the relationship between the distribution of p53+ tumour cells and immune cells in image $6$.
 
 ```{r, singleImage, echo=FALSE}
 # Code source: https://www.bioconductor.org/packages/release/bioc/vignettes/Statial/inst/doc/Statial.html#kontextual-identifying-discrete-changes-in-cell-state
@@ -294,7 +294,7 @@ Given the degree to which the log-likelihood improves by adding the intensity fu
 plot(m1)
 ```
 
-This is also clear form the spatial trend, highlighting that most regions have a very low probability of p53+ cells.
+This is also clear from the spatial trend, highlighting that most regions have a very low probability of p53+ cells.
 
 ### Model of distance to immune cells
 
@@ -322,13 +322,13 @@ We can again look at the contribution of the model parameters with a LRT
 anova(m2, test="LRT")
 ```
 
-We see that the model including the distance to immune cells fits the better than the homogeneous and the inhomogeneous models respectively. 
+We see that the model including the distance to immune cells fits better than the homogeneous and the inhomogeneous models respectively. 
 
 ```{r, plotPpm, fig.width=8, fig.height=8}
 plot(m2)
 ```
 
-In comparison to the spatial trend of the purely inhomogeneous model, the inhomogenoeus + distance to immune cells model has a more localised trend in the bottom right corner. 
+In comparison to the spatial trend of the purely inhomogeneous model, the inhomogeneous + distance to immune cells model has a more localised trend in the bottom right corner. 
 
 An important step in fitting complex spatial models is to check goodness-of-fit
 
@@ -377,7 +377,7 @@ sfeSub <- toSpatialFeatureExperiment(speSub)
 annotGeometry(sfeSub, "tumour_mask") <- segmentedTumour
 ```
 
-After this, we can speficy our `ppm` with the segmented tumour as spatial covariate. The result will be a logical covariate, indicating the intensity of the response within the tumour (`tumour_mask == TRUE`) as compared to outside.
+After this, we can specify our `ppm` with the segmented tumour as spatial covariate. The result will be a logical covariate, indicating the intensity of the response within the tumour (`tumour_mask == TRUE`) as compared to outside.
 
 ```{r, sostaPpm}
 m3 <- fitModel(spe = sfeSub,
@@ -464,7 +464,7 @@ The first model seems reasonable in terms of diagnostics, however it  contains m
 
 ### Second-stage model of coefficients
 
-We can also test the effect of tumour type (cold, compartmentalized, mixed) on the distance to immune cells coefficient $\beta_{\text{dist}}$ with a linear model. We weight each observation by the inverse of the standard error, as done by @gerber2026mimic. 
+We can also test the effect of tumour type (cold, compartmentalised, mixed) on the distance to immune cells coefficient $\beta_{\text{dist}}$ with a linear model. We weight each observation by the inverse of the standard error, as done by @gerber2026mimic. 
 
 The model is then parametrised as follows:
 
