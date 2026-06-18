@@ -1,6 +1,6 @@
 # multipointR
 
-[![R-CMD-check](https://github.com/mjemons/multipointR/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/mjemons/multipointR/actions/workflows/R-CMD-check.yml)
+[![R-CMD-check](https://github.com/mjemons/multipointR/actions/workflows/R-CMD-check.yml/badge.svg?branch=main)](https://github.com/mjemons/multipointR/actions/workflows/R-CMD-check.yml)
 
 `multipointR` is a package to compare the distribution of cells in an image
 or across multiple images with labelled point process models.
