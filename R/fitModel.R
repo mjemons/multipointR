@@ -32,14 +32,13 @@
 #'
 #' mdl <- fitModel(spe = speSub,
 #'                 marks = "cellType",
-#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+#'                 formula = as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)")
 #' )
 #' 
 #' @importFrom mgcv s
 #' @importFrom spatstat.model dppm
 #' @importFrom spatstat.model kppm
 #' @importFrom spatstat.model ppm
-#' @import spatstat.geom
 fitModel <- function(spe,
                      model = "ppm",
                      marks,
@@ -56,7 +55,7 @@ fitModel <- function(spe,
       is.character(marks),
       is(formula, "formula"),
       is.null(threshold) || is.numeric(threshold),
-      is.character(interaction),
+      is.character(interaction) || is.null(interaction),
       is.null(lambda) || is(lambda, "im"),
       is.na(cellspacing) || is.numeric(cellspacing)
   )
@@ -121,15 +120,14 @@ fitModel <- function(spe,
 #'
 #' mdl <- fitModel(spe = speSub,
 #'                 marks = "cellType",
-#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+#'                 formula = as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)")
 #' )
 #' plot(mdl)
 #' @export
 #' @method plot multipointRppm
-#' @import dplyr ggplot2
 plot.multipointRppm <- function(x, type = "trend", ...){
   ### coded with the help of claude.ai ###
-  stopifnot(verifyclass(x, "ppm"))
+  stopifnot(spatstat.geom::verifyclass(x, "ppm"))
   #extract the response `ppp` object
   pp_df <- as.data.frame(x$Q$data)
   #extract the trend image
@@ -137,17 +135,17 @@ plot.multipointRppm <- function(x, type = "trend", ...){
   #convert the image to a dataframe
   mdl_df <- as.data.frame((mdl_img))
 
-  p <- ggplot(mdl_df, aes(x = .data[["x"]], y = .data[["y"]])) +
-  geom_raster(aes(fill = .data[["value"]])) +
-  scale_fill_viridis_c(option = "magma", name = type) +
-  geom_point(data = pp_df, aes(x = .data[["x"]], y = .data[["y"]]),
+  p <- ggplot2::ggplot(mdl_df, ggplot2::aes(x = .data[["x"]], y = .data[["y"]])) +
+  ggplot2::geom_raster(ggplot2::aes(fill = .data[["value"]])) +
+  ggplot2::scale_fill_viridis_c(option = "magma", name = type) +
+  ggplot2::geom_point(data = pp_df, ggplot2::aes(x = .data[["x"]], y = .data[["y"]]),
              shape = 1,          
              size = 1.5,
              color = "white",   
              stroke = 0.15) +    
-  coord_equal() +
-  theme_light() +
-  labs(title = paste0("Fitted ", type, " surface"), x = "x", y = "y")
+  ggplot2::coord_equal() +
+  ggplot2::theme_light() +
+  ggplot2::labs(title = paste0("Fitted ", type, " surface"), x = "x", y = "y")
   
   return(p)
 }

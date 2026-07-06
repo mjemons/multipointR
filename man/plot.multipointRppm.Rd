@@ -25,7 +25,7 @@ speSub <- subset(spe, , imageID == "5")
 
 mdl <- fitModel(spe = speSub,
                 marks = "cellType",
-                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+                formula = as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)")
 )
 plot(mdl)
 }

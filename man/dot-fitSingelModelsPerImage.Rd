@@ -66,14 +66,3 @@ as inhomogeneous intensity via diggle correction}
 \description{
 fit $n$ univariate Models for all $n$ images
 }
-\examples{
-spe <- SpatialDatasets::spe_Keren_2018()
-
-out <- .fitSingelModelsPerImage(spe = spe,
-                imageId = "imageID",
-                imageLs = list("1", "2"),
-                marks = "cellType",
-                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
-                threshold = 10)
-
-}

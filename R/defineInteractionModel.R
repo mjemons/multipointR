@@ -17,7 +17,7 @@
 #' @examples
 #' spe <- SpatialDatasets::spe_Keren_2018()
 #' speSub <- subset(spe, , imageID == "5")
-#' formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+#' formula = as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)")
 #' #define the response
 #' response <- as.character(formula.tools::lhs(formula))
 #' 
@@ -41,15 +41,15 @@ defineInteractionModel <- function(interaction,
   #calculate the minimum nearest neighbour distance if `is.null(cellspacing)`
   ### adapted from spatstat.model::Hardcore GPL-2 licensed
   if(length(cellspacing)>0 || is.na(cellspacing)){
-    minNnDist <- minnndist(data[[response]])
-    nX <- npoints(data[[response]])
+    minNnDist <- spatstat.geom::minnndist(data[[response]])
+    nX <- spatstat.geom::npoints(data[[response]])
     cellspacing <- minNnDist * nX/(nX+1)
   }
   ### end of directly adapted code ### 
   if(is.null(interaction)){
     interactionModel <- interaction
-    message(paste0("You have specified a Poisson process - make sure that the assumption 
-    of physical overlap is justified in your data"))
+    message("You have specified a Poisson process - make sure that the assumption 
+    of physical overlap is justified in your data")
   }
   else if(interaction == "Strauss"){
     interactionModel <- spatstat.model::Strauss(r = cellspacing)

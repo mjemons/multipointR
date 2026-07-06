@@ -79,7 +79,7 @@ mdl <- fitModelAcrossImages(spe = spe,
                 imageId = "imageID",
                 imageLs = list("1", "2"),
                 marks = "cellType",
-                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
+                formula = as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"),
                 threshold = 10)
 
 }

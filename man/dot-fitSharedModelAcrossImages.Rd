@@ -66,14 +66,3 @@ list\verb{; result from a }ppm\verb{model in}spatstat.model`
 \description{
 fit a shared univariate Models for all $n$ images simultaneously
 }
-\examples{
-spe <- SpatialDatasets::spe_Keren_2018()
-
-out <- .fitSharedModelAcrossImages(spe = spe,
-                imageId = "imageID",
-                imageLs = list("1", "2"),
-                marks = "cellType",
-                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
-                threshold = 10)
-
-}

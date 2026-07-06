@@ -27,16 +27,6 @@
 #'
 #' @returns `mppm` object of the shared fit across all images
 #'
-#' @export
-#' @examples 
-#' spe <- SpatialDatasets::spe_Keren_2018()
-#' 
-#' out <- .fitSingelModelsPerImage(spe = spe,
-#'                 imageId = "imageID",
-#'                 imageLs = list("1", "2"),
-#'                 marks = "cellType",
-#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
-#'                 threshold = 10)
 #' 
 .fitSingelModelsPerImage <- function(spe,
                                 model = "ppm",
@@ -55,7 +45,7 @@
   mdlLs <- parallel::mclapply(imageLs, function(image){
     speSub <- spe[, colData(spe)[[imageId]] == image]
     if(verbose){
-      message(paste0("Fitting ", model, " to image ", image))
+      message("Fitting ", model, " to image ", image)
     }
     mdl <- fitModel(spe = speSub,
                     model = model,
@@ -103,16 +93,6 @@
 #'
 #' @returns list`; result from a `ppm` model in `spatstat.model`
 #'
-#' @export
-#' @examples
-#' spe <- SpatialDatasets::spe_Keren_2018()
-#' 
-#' out <- .fitSharedModelAcrossImages(spe = spe,
-#'                 imageId = "imageID",
-#'                 imageLs = list("1", "2"),
-#'                 marks = "cellType",
-#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
-#'                 threshold = 10)
 #' 
 .fitSharedModelAcrossImages <- function(spe,
                                 model = "ppm",
@@ -163,7 +143,7 @@
   #the columns for anything else than `ppp` or `interaction` or `im` objects have to be flat
   #therefore, unlist them 
   cols <- lapply(cols, function(col) {
-    if (all(sapply(col, function(x) length(x) == 1 && (is.factor(x) || is.character(x) || is.numeric(x))))) {
+    if (all(vapply(col, function(x) length(x) == 1 && (is.factor(x) || is.character(x) || is.numeric(x)), logical(1)))) {
       return(unlist(col))
     } else {
       return(col)
@@ -187,17 +167,17 @@
   if(is.null(randomEffects)){
     mdl <- spatstat.model::mppm(formula=formula, 
       data=hf, 
-      interaction = as.hyperframe(Interaction = hf[["interact"]]),
+      interaction = spatstat.geom::as.hyperframe(Interaction = hf[["interact"]]),
       ...)
   }else{
     #build the two formulae for fixed and random effects
     feFormula <- stats::as.formula(paste(deparse(fixedEffects)), env = baseenv())
     reFormula <- stats::as.formula(
-                paste("~", paste0(sapply(randomEffects, deparse), collapse = " + ")), env = baseenv()
+                paste("~", paste0(vapply(randomEffects, deparse, character(1)), collapse = " + ")), env = baseenv()
     )
     mdl <- spatstat.model::mppm(formula=feFormula, 
       random = reFormula, data=hf,
-      interaction = as.hyperframe(hf[["interact"]]),
+      interaction = spatstat.geom::as.hyperframe(hf[["interact"]]),
       ...)
   }
   return(mdl)
@@ -246,7 +226,7 @@
 #'                 imageId = "imageID",
 #'                 imageLs = list("1", "2"),
 #'                 marks = "cellType",
-#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
+#'                 formula = as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"),
 #'                 threshold = 10)
 #' 
 #' @importFrom mgcv s

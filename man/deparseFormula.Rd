@@ -31,7 +31,7 @@ deparse the Formula for spatstat and extract the relevant data
 \examples{
 spe <- SpatialDatasets::spe_Keren_2018()
 speSub <- subset(spe, , imageID == "5")
-formula = stats::as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+formula = stats::as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)")
 #define the response
 response <- as.character(formula.tools::lhs(formula))
 

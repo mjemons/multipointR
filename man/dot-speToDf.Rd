@@ -16,9 +16,3 @@ SpatialExperiment and the colData
 \description{
 Transform a SpatialExperiment into a dataframe
 }
-\examples{
-# retrieve example data from Keren et al. (2018)
-spe <- SpatialDatasets::spe_Keren_2018()
-speSub <- subset(spe, , imageID == "6")
-dfSub <- .speToDf(speSub)
-}

@@ -7,6 +7,7 @@ test_that("fitModel works with treshold", {
   mdl <- fitModel(spe = speSub,
                   marks = "cellType",
                   formula = as.formula("Keratin_Tumour ~ 1"),
+                  interaction = "Strauss",
                   threshold = 10)
   expect_equal(is(mdl), "multipointRppm")
   expect_true(verifyclass(mdl, "ppm"))
@@ -18,6 +19,7 @@ test_that("fitModel fails with incorrect formula", {
   expect_error(fitModel(spe = speSub,
                   marks = "cellType",
                   formula = as.formula("Keratin_Tumour"),
+                  interaction = "StraussHard",
                   threshold = 10))
 })
 
@@ -27,6 +29,8 @@ test_that("fitModel works with mixed formulas of changed and unchanged functions
   mdl <- fitModel(spe = speSub,
                   marks = "cellType",
                   formula = as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(Endothelial))"),
+                  interaction = "Fiksel",
+                  cellspacing = 1,
                   threshold = 10)
   expect_equal(is(mdl), "multipointRppm")
   expect_true(verifyclass(mdl, "ppm"))
@@ -48,6 +52,7 @@ test_that("fitModel works with interactions", {
   mdl <- fitModel(spe = speSub,
                   marks = "cellType",
                   formula = as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(Endothelial))"),
+                  interaction = "Hardcore",
                   threshold = 10)
   expect_true(!is.null(mdl$interaction))
 })
@@ -57,9 +62,20 @@ test_that("fitModel works with offset", {
 
   mdl <- fitModel(spe = speSub,
                 marks = "cellType",
-                formula = as.formula("Keratin_Tumour ~ offset(log(lambda)) + distfun(Endothelial)")
+                formula = as.formula("Keratin_Tumour ~ offset(log(lambda)) + distfun(Endothelial)"),
+                interaction = NULL
 )
-  expect_true(!is.null(mdl$interaction))
+  expect_true(!is.null(mdl$trend))
+})
+
+test_that("fitModel fails if interaction is not implemented", {
+  speSub <- subset(spe, , imageID == "15")
+
+  expect_error(mdl <- fitModel(spe = speSub,
+                marks = "cellType",
+                formula = as.formula("Keratin_Tumour ~ offset(log(lambda)) + distfun(Endothelial)"),
+                interaction = "Dirichlet"
+))
 })
 
 test_that("fitModel works with interaction", {
@@ -67,7 +83,8 @@ test_that("fitModel works with interaction", {
 
   mdl <- fitModel(spe = speSub,
                 marks = "cellType",
-                formula = as.formula("Keratin_Tumour ~ sqrt(x):distfun(Endothelial)")
+                formula = as.formula("Keratin_Tumour ~ sqrt(x):distfun(Endothelial)"),
+                interaction = "StraussHard"
 )
   expect_equal(is(mdl), "multipointRppm")
   expect_true(verifyclass(mdl, "ppm"))

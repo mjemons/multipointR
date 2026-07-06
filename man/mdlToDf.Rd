@@ -26,7 +26,7 @@ mdlLs <- fitModelAcrossImages(spe = spe,
                 imageLs = list("1", "2"),
                 marks = "cellType",
                 sharedModel = FALSE,
-                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
+                formula = as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"),
                 threshold = 10)
 
 mdlDf <- mdlToDf(mdlLs = mdlLs,

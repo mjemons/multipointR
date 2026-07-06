@@ -16,7 +16,7 @@
 #' @examples
 #' spe <- SpatialDatasets::spe_Keren_2018()
 #' speSub <- subset(spe, , imageID == "5")
-#' formula = stats::as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+#' formula = stats::as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)")
 #' #define the response
 #' response <- as.character(formula.tools::lhs(formula))
 #' 
@@ -54,7 +54,7 @@ deparseFormula <- function(spe,
   data <- list(x = SpatialExperiment::spatialCoords(spe)[,SpatialExperiment::spatialCoordsNames(spe)[1]],
     y = SpatialExperiment::spatialCoords(spe)[,SpatialExperiment::spatialCoordsNames(spe)[2]])
   
-  data[[response]] = ppResponse
+  data[[response]] <- ppResponse
 
   #calculate inhomogeneous intensity offset if not provided
   #if this is not provided, calculate it, else take the user
@@ -71,69 +71,19 @@ deparseFormula <- function(spe,
     data[["lambda"]] <- lambda
   }
   Vars <- c()
-  for(var in levels(pp$marks)){
-    if(var %in% rhsVars){
-      #convert to pp object
-      ppVar <- spatstat.geom::unmark(pp[pp$marks %in% var, drop = TRUE])
-      #get position in the rhs list
-      position <- which(all.names(rhs) == var)
-      #get the function that is being applied to the object
-      fun <- all.names(rhs)[position-1]
-      #apply the function and store in data
-      data[[paste0(fun,".",var,".")]] = do.call(fun, 
-        args = list(X=ppVar,
-                    x = ppVar))
-      ### code by claude.ai
-      collect_terms <- function(expr) {
-        if (!is.call(expr)) {
-          # Base case: bare variable
-          return(deparse1(expr))
-        }
-        
-        op <- deparse1(expr[[1]])
-        
-        if (op %in% c("+", "-", "*", "/", ":")) {
-          # Binary operator — recurse into both sides
-          unlist(lapply(as.list(expr[-1]), collect_terms))
-        } else {
-          # Function call like distfun(...) — return as-is
-          deparse1(expr)
-        }
-      }
-      ### end code by claude.ai
-      deparsed <- unique(collect_terms(rhs))
-      #get the position in the function
-      formula_position <- which(grepl(var, deparsed))
-      #string split the variable 
-      splitVar <- strsplit(deparsed[formula_position], "[()]")[[1]]
-      #remove empty strings
-      splitVar <- splitVar[nzchar(splitVar)]
-      #remove the already transformed part
-      if(length(splitVar)>2){
-        transform <- splitVar[-c(length(splitVar)-1, length(splitVar))]
-        stopifnot("Only one composite function can be passed in this function" = length(transform) == 1)
-        #replace function name
-        newVar <- paste0(transform,"(",fun,".",var,".",")")
-      }else{
-        newVar <- paste0(fun,".",var,".")
-      }
-      Vars <- c(Vars, var)
-    }
+for(var in levels(pp$marks)){
+  if(var %in% rhsVars){
+    ppVar <- spatstat.geom::unmark(pp[pp$marks %in% var, drop = TRUE])
+
+    funExpr  <- get_fun_call(rhs, var)
+    funObj   <- eval(funExpr, envir = parent.frame())
+    funLabel <- gsub("::", ".", deparse1(funExpr))
+
+    data[[paste0(funLabel, ".", var, ".")]] <- do.call(funObj, args = list(X = ppVar, x = ppVar))
+
+    Vars <- c(Vars, var)
   }
-  ### written by claude.ai
-  get_innermost_call <- function(term) {
-    expr <- parse(text = trimws(term))[[1]]
-    
-    # recurse until no more calls
-    while (is.call(expr)) {
-      # find the first argument that is itself a call
-      inner <- Filter(is.call, as.list(expr[-1]))
-      if (length(inner) == 0) break
-      expr <- inner[[1]]
-    }
-    return(deparse1(expr))
-  }
-  ### end code by claude.ai
+}
   #deparse the formula
   deparsed <- formula |> formula.tools::rhs() |> deparse()
   #split the terms of the formula
@@ -144,14 +94,15 @@ deparseFormula <- function(spe,
     #split function from variable
     term <- splitTerms[mask]
     #split interactions
-    terms <- strsplit(term, "[+:*/\\\\]")[[1]] |> trimws()
+    # line optimised by claude.ai
+    terms <- strsplit(term, "\\+|\\*|/|\\\\|(?<!:):(?!:)", perl = TRUE)[[1]] |> trimws()
     #check again for var
     maskTerms <- grepl(var,terms)
     #extract the innermost function call -> this will be the spatstat function on the
     #ppp object
     inner <- get_innermost_call(terms[maskTerms])
-    #exchange () with "." to signal that this was already evaluated
-    inner_modified <- gsub("[()]", ".", inner)
+    #exchange () and :: with "." to signal that this was already evaluated
+    inner_modified <- gsub("[()]|::", ".", inner)
     #put this back in the original function
     splitTerms[mask] <- sub(inner, inner_modified, term, fixed = TRUE)
   }
@@ -191,7 +142,7 @@ deparseFormula <- function(spe,
       return(NULL)
     }
     reFormula <- stats::as.formula(
-                paste(". ~ . +", paste0("(", sapply(randomEffects, deparse), ")", collapse = " + ")), env = parent.frame()
+                paste(". ~ . +", paste0("(", vapply(randomEffects, deparse, character(1)), ")", collapse = " + ")), env = parent.frame()
     )
     
     formula <- stats::update(formula, reFormula)

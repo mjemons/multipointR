@@ -10,14 +10,6 @@
 #' defaults to FALSE
 #' @param window `owin`; An observation window of the point pattern of class.
 #' @return `ppp`; object for use with `spatstat` functions
-#' @export
-#'
-#' @examples
-#' # retrieve example data from Keren et al. (2018)
-#' spe <- SpatialDatasets::spe_Keren_2018()
-#' speSub <- subset(spe, , imageID == "6")
-#' dfSub <- .speToDf(speSub)
-#' pp <- .dfToppp(dfSub, marks = "cellType")
 #'
 #' @importFrom SummarizedExperiment colData
 #' @importFrom methods is
@@ -59,13 +51,6 @@
 #'
 #' @return `DataFrame`; x and y coordinates from the corresponding
 #' SpatialExperiment and the colData
-#' @export
-#'
-#' @examples
-#' # retrieve example data from Keren et al. (2018)
-#' spe <- SpatialDatasets::spe_Keren_2018()
-#' speSub <- subset(spe, , imageID == "6")
-#' dfSub <- .speToDf(speSub)
 #' @importFrom methods is
 .speToDf <- function(spe) {
   stopifnot(is(spe, "SpatialExperiment"))
@@ -82,6 +67,9 @@
 #'
 #' @param spe `SpatialExperiment`; object subset to a single image
 #' @param marks `character`; the column with the labels e.g. cell types
+#' @param continuous `logical`; indicating whether the marks are continuous
+#' defaults to FALSE
+#' @param window `owin`; An observation window of the point pattern of class.
 #'
 #' @return A ppp object for use with any `spatstat` package
 #' @export
@@ -91,7 +79,7 @@
 #' speSub <- subset(spe, , imageID == "6")
 #' pp <- speToPPP(speSub, mark = "cellType")
 #'
-speToPPP <- function(spe, marks){
+speToPPP <- function(spe, marks, continuous = FALSE, window = NULL){
   df <- .speToDf(spe)
-  pp <- .dfToppp(df, marks = marks)
+  pp <- .dfToppp(df, continuous = continuous, window = window, marks = marks)
 }
