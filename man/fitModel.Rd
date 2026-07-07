@@ -21,8 +21,8 @@ fitModel(
 \arguments{
 \item{spe}{\code{SpatialExperiment}; object subset to a single image}
 
-\item{model}{\code{character}; the \code{spatstat.model} function to use for computation.
-Typically one of \code{ppm}, \code{kppm} or \code{dppm}.}
+\item{model}{\code{character}; the \code{spatstat.model} function to
+use for computation. Typically one of \code{ppm}, \code{kppm} or \code{dppm}.}
 
 \item{marks}{\code{character}; the column with the labels e.g. cell types}
 
@@ -34,19 +34,21 @@ One of \code{dppGauss}, \code{dppMatern}, \code{dppCauchy}, \code{dppBessel} or 
 \item{threshold}{\code{numeric}; a threshold to apply on the minimum number of
 points a point pattern needs to have to fit a \code{ppm} model to it.}
 
-\item{interaction}{\code{character}; Formula specifying whether to fit a \code{Hardcore},
-\code{Strauss}, \code{Fiksel} or \code{StraussHard} process to the data}
+\item{interaction}{\code{character}; Formula specifying whether to fit
+a \code{Hardcore}, \code{Strauss}, \code{Fiksel} or \code{StraussHard} process to the data}
 
-\item{lambda}{\code{im} or \code{NULL}; offset of the intensity to include in the model to account for
-the underlying inhomogeneity. If this is not user provided, will be estimated
-as inhomogeneous intensity via diggle correction}
+\item{lambda}{\code{im} or \code{NULL}; offset of the intensity to include in the
+model to account for the underlying inhomogeneity.
+If this is not user provided, will be estimated as inhomogeneous
+intensity via diggle correction}
 
 \item{cellspacing}{\code{numeric} how much spacing should be accounted for in the
-interaction process due to the cell body. If this is not provided, the cell spacing
-parameter is estimated from the data as the minimum nearest neighbour distance
-divided by $n(n+1)$ as done in \code{spatstat.model::Hardcore}. In the case of \code{StraussHard},
-only the Strauss interaction radius can be user-provided,
-the Hardcore interaction is always estimated from the data.}
+interaction process due to the cell body. If this is not provided,
+the cell spacing parameter is estimated from the data as the minimum
+nearest neighbour distance divided by $n(n+1)$ as done in
+\code{spatstat.model::Hardcore}. In the case of \code{StraussHard},
+only the Strauss interaction radius can be user-provided, the Hardcore
+interaction is always estimated from the data.}
 
 \item{...}{other parameters passed on to \code{ppm} model from \code{spatstat.model}}
 }
@@ -61,9 +63,12 @@ object
 spe <- SpatialDatasets::spe_Keren_2018()
 speSub <- subset(spe, , imageID == "5")
 
-mdl <- fitModel(spe = speSub,
-                marks = "cellType",
-                formula = as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)")
+mdl <- fitModel(
+    spe = speSub,
+    marks = "cellType",
+    formula = as.formula(
+        "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
+    )
 )
 
 }

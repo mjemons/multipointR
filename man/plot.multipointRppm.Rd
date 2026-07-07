@@ -7,7 +7,8 @@
 \method{plot}{multipointRppm}(x, type = "trend", ...)
 }
 \arguments{
-\item{x}{\code{ppm}; a model fit with \code{spatstat.model::ppm} or the wrapper \code{multipointR::fitModel}}
+\item{x}{\code{ppm}; a model fit with \code{spatstat.model::ppm}
+or the wrapper \code{multipointR::fitModel}}
 
 \item{type}{\code{character}; the type to plot, one of "intensity" or "trend"}
 
@@ -23,9 +24,12 @@ Plot mulitpointR \code{ppm} objects
 spe <- SpatialDatasets::spe_Keren_2018()
 speSub <- subset(spe, , imageID == "5")
 
-mdl <- fitModel(spe = speSub,
-                marks = "cellType",
-                formula = as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)")
+mdl <- fitModel(
+    spe = speSub,
+    marks = "cellType",
+    formula = as.formula(
+        "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
+    )
 )
 plot(mdl)
 }
