@@ -21,16 +21,24 @@ Convert the list of spatial models to a dataframe
 \examples{
 spe <- SpatialDatasets::spe_Keren_2018()
 
-mdlLs <- fitModelAcrossImages(spe = spe,
-                imageId = "imageID",
-                imageLs = list("1", "2"),
-                marks = "cellType",
-                sharedModel = FALSE,
-                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
-                threshold = 10)
+mdlLs <- fitModelAcrossImages(
+    spe = spe,
+    imageId = "imageID",
+    imageLs = list("1", "2"),
+    marks = "cellType",
+    sharedModel = FALSE,
+    formula = as.formula(
+        "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
+    ),
+    threshold = 10
+)
 
-mdlDf <- mdlToDf(mdlLs = mdlLs,
-                 imageCovariates = c("imageID",
-                                     "tumour_type"))
+mdlDf <- mdlToDf(
+    mdlLs = mdlLs,
+    imageCovariates = c(
+        "imageID",
+        "tumour_type"
+    )
+)
 
 }

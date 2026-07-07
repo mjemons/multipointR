@@ -7,17 +7,21 @@
 defineInteractionModel(interaction, cellspacing, response, data)
 }
 \arguments{
-\item{interaction}{\code{character}; Formula specifying whether to fit a \code{Hardcore},
+\item{interaction}{\code{character}; Formula specifying whether
+to fit a \code{Hardcore},
 \code{Strauss}, \code{Fiksel} or \code{StraussHard} process to the data}
 
-\item{cellspacing}{\code{numeric} how much spacing should be accounted for in the
-interaction process due to the cell body. If this is not provided, the cell spacing
-parameter is estimated from the data as the minimum nearest neighbour distance
-divided by $n(n+1)$ as done in \code{spatstat.model::Hardcore}. In the case of \code{StraussHard},
-only the Strauss interaction radius can be user-provided, the Hardcore interaction is
-always estimated from the data.}
+\item{cellspacing}{\code{numeric} how much spacing should be
+accounted for in the interaction process due to the cell body.
+If this is not provided, the cell spacing parameter is estimated
+from the data as the minimum nearest neighbour distance
+divided by $n(n+1)$ as done in \code{spatstat.model::Hardcore}.
+In the case of \code{StraussHard}, only the Strauss interaction radius
+can be user-provided, the Hardcore interaction is always estimated
+from the data.}
 
-\item{response}{\code{character}; the response for the process, the lhs of the formula object}
+\item{response}{\code{character}; the response for the process,
+the lhs of the formula object}
 
 \item{data}{\code{list} the interaction model for the Gibbs process}
 }
@@ -30,21 +34,25 @@ define the Interaction Model
 \examples{
 spe <- SpatialDatasets::spe_Keren_2018()
 speSub <- subset(spe, , imageID == "5")
-formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
-#define the response
+formula <- as.formula("Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)")
+# define the response
 response <- as.character(formula.tools::lhs(formula))
 
-#deparse the Formula and extract the data
-out <- deparseFormula(spe = speSub,
-                      response = response,
-                      formula = formula,
-                      marks = "cellType", 
-                      lambda = NULL,
-                      threshold = 10)
+# deparse the Formula and extract the data
+out <- deparseFormula(
+    spe = speSub,
+    response = response,
+    formula = formula,
+    marks = "cellType",
+    lambda = NULL,
+    threshold = 10
+)
 
-interactionModel <- defineInteractionModel(interaction = "Hardcore",
-                                           cellspacing = NA,
-                                           response = response,
-                                           data = out[["data"]])
+interactionModel <- defineInteractionModel(
+    interaction = "Hardcore",
+    cellspacing = NA,
+    response = response,
+    data = out[["data"]]
+)
 
 }

@@ -26,8 +26,8 @@ fitModelAcrossImages(
 \arguments{
 \item{spe}{\code{SpatialExperiment}; object subset to a single image}
 
-\item{model}{\code{character}; the \code{spatstat.model} function to use for computation.
-Typically one of \code{ppm}, \code{kppm} or \code{dppm}.}
+\item{model}{\code{character}; the \code{spatstat.model} function to use
+for computation. Typically one of \code{ppm}, \code{kppm} or \code{dppm}.}
 
 \item{imageId}{\code{character}; column in the colData of the \code{SpatialExperiment}
 object specifying the image ID}
@@ -45,19 +45,21 @@ One of \code{dppGauss}, \code{dppMatern}, \code{dppCauchy}, \code{dppBessel} or 
 \item{threshold}{\code{numeric}; a threshold to apply on the minimum number of
 points a point pattern needs to have to fit a \code{ppm} model to it.}
 
-\item{interaction}{\code{character}; Formula specifying whether to fit a \code{Hardcore},
-\code{Strauss}, \code{StraussHard} or \code{Fiksel} process to the data}
+\item{interaction}{\code{character}; Formula specifying whether to fit a
+\code{Hardcore}, \code{Strauss}, \code{StraussHard} or \code{Fiksel} process to the data}
 
 \item{cellspacing}{\code{numeric} how much spacing should be accounted for in the
-Hardcore process due to the cell body. If this is not provided, the cell spacing
-parameter is estimated from the data}
+Hardcore process due to the cell body. If this is not provided,
+the cell spacing parameter is estimated from the data}
 
-\item{lambda}{\code{im} or \code{NULL}; offset of the intensity to include in the model to account for
-the underlying inhomogeneity. If this is not user provided, will be estimated
-as inhomogeneous intensity via diggle correction}
+\item{lambda}{\code{im} or \code{NULL}; offset of the intensity to include in the
+model to account for the underlying inhomogeneity.
+If this is not user provided, will be estimated as inhomogeneous
+intensity via diggle correction}
 
 \item{sharedModel}{\code{logical}; whether or not to fit one univariate model
-per image ($n$ models in total) or estimate one shared univariate model across all images.}
+per image ($n$ models in total) or estimate one shared univariate
+model across all images.}
 
 \item{ncores}{\code{numeric}; the number of cores to used for parallel processing}
 
@@ -66,7 +68,8 @@ per image ($n$ models in total) or estimate one shared univariate model across a
 \item{...}{other parameters passed on to \code{dppm} model from \code{spatstat.model}}
 }
 \value{
-\code{list}; result from a \code{ppm} model in \code{spatstat.model} or a \code{mppm} model
+\code{list}; result from a \code{ppm} model in \code{spatstat.model}
+or a \code{mppm} model
 }
 \description{
 Fit point process models across all images in the
@@ -75,11 +78,15 @@ Fit point process models across all images in the
 \examples{
 spe <- SpatialDatasets::spe_Keren_2018()
 
-mdl <- fitModelAcrossImages(spe = spe,
-                imageId = "imageID",
-                imageLs = list("1", "2"),
-                marks = "cellType",
-                formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
-                threshold = 10)
+mdl <- fitModelAcrossImages(
+    spe = spe,
+    imageId = "imageID",
+    imageLs = list("1", "2"),
+    marks = "cellType",
+    formula = as.formula(
+        "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
+    ),
+    threshold = 10
+)
 
 }

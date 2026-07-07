@@ -23,11 +23,3 @@ defaults to FALSE}
 \description{
 Convert SpatialExperiment object to ppp object
 }
-\examples{
-# retrieve example data from Keren et al. (2018)
-spe <- SpatialDatasets::spe_Keren_2018()
-speSub <- subset(spe, , imageID == "6")
-dfSub <- .speToDf(speSub)
-pp <- .dfToppp(dfSub, marks = "cellType")
-
-}

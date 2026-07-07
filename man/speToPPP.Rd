@@ -4,12 +4,17 @@
 \alias{speToPPP}
 \title{convert a SpatialExperiment object into a point pattern}
 \usage{
-speToPPP(spe, marks)
+speToPPP(spe, marks, continuous = FALSE, window = NULL)
 }
 \arguments{
 \item{spe}{\code{SpatialExperiment}; object subset to a single image}
 
 \item{marks}{\code{character}; the column with the labels e.g. cell types}
+
+\item{continuous}{\code{logical}; indicating whether the marks are continuous
+defaults to FALSE}
+
+\item{window}{\code{owin}; An observation window of the point pattern of class.}
 }
 \value{
 A ppp object for use with any \code{spatstat} package

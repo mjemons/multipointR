@@ -11,13 +11,15 @@ deparseFormula(spe, formula, response, marks, lambda, threshold)
 
 \item{formula}{\code{formula}; the formula to pass to the \code{ppm} function}
 
-\item{response}{\code{character}; the response for the process, the lhs of the formula object}
+\item{response}{\code{character}; the response for the process,
+the lhs of the formula object}
 
 \item{marks}{\code{character}; the column with the labels e.g. cell types}
 
-\item{lambda}{\code{im} or \code{NULL}; offset of the intensity to include in the model to account for
-the underlying inhomogeneity. If this is not user provided, will be estimated
-as inhomogeneous intensity via diggle correction}
+\item{lambda}{\code{im} or \code{NULL}; offset of the intensity to include in the
+model to account for the underlying inhomogeneity.
+If this is not user provided, will be estimated as inhomogeneous
+intensity via diggle correction}
 
 \item{threshold}{\code{numeric}; a threshold to apply on the minimum number of
 points a point pattern needs to have to fit a \code{ppm} model to it.}
@@ -31,16 +33,20 @@ deparse the Formula for spatstat and extract the relevant data
 \examples{
 spe <- SpatialDatasets::spe_Keren_2018()
 speSub <- subset(spe, , imageID == "5")
-formula = stats::as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
-#define the response
+formula <- stats::as.formula(
+    "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
+)
+# define the response
 response <- as.character(formula.tools::lhs(formula))
 
-#deparse the Formula and extract the data
-out <- deparseFormula(spe = speSub,
-                      response = response,
-                      formula = formula,
-                      marks = "cellType", 
-                      lambda = NULL,
-                      threshold = 10)
+# deparse the Formula and extract the data
+out <- deparseFormula(
+    spe = speSub,
+    response = response,
+    formula = formula,
+    marks = "cellType",
+    lambda = NULL,
+    threshold = 10
+)
 
 }

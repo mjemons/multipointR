@@ -3,8 +3,10 @@ title: "Introduction to `multipointR`"
 author: 
   - name: "Martin Emons"
     affiliation:
-      - &DMLS Department of Molecular Life Sciences, University of Zurich, Switzerland
-      - &SIB SIB Swiss Institute of Bioinformatics, Lausanne, Switzerland
+      - &DMLS Department of Molecular Life Sciences,
+       University of Zurich, Switzerland
+      - &SIB SIB Swiss Institute of Bioinformatics, 
+       Lausanne, Switzerland
     email: "martin.emons@uzh.ch"
   - name: "Wolfgang Huber"
     affiliation:
@@ -17,9 +19,10 @@ package: "`r BiocStyle::Biocpkg('multipointR')`"
 output:
   BiocStyle::html_document
 abstract: >
-  `multipointR` is a `Bioconductor` package to fit parametric point process models of
-  intensity to cells approximated as points. This can be done for a single image
-  or across multiple images.
+  `multipointR` is a `Bioconductor` package to fit 
+  parametric point process models of
+  intensity to cells approximated as points. 
+  This can be done for a single image or across multiple images.
 vignette: >
   %\VignetteIndexEntry{Introduction to `multipointR`}
   %\VignetteEncoding{UTF-8}  
@@ -29,6 +32,13 @@ header-includes:
    - \usepackage{si}
 editor_options: 
   chunk_output_type: console
+editor:
+  markdown:
+    wrap: 80
+execute:
+  message: false
+  warning: false
+  error: false
 ---
 
 ```{r v1, include = FALSE}
@@ -41,18 +51,29 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-`r BiocStyle::Biocpkg('multipointR')` is a package to fit point process models from `r BiocStyle::CRANpkg('spatstat.model')` on `r BiocStyle::Biocpkg('SpatialExperiment')` and `r BiocStyle::Biocpkg('SpatialFeatureExperiment')` objects. Cells are approximated as points and their distribution in space is modelled as the log-linear combination of spatial (or non-spatial) covariates. `r BiocStyle::Biocpkg('multipointR')` has a mode to do inferences on the level of a single image with `fitModel` and across multiple images with `fitModelAcrossImages`.  
+`r BiocStyle::Biocpkg('multipointR')` is a package to fit point process models 
+from `r BiocStyle::CRANpkg('spatstat.model')` on 
+`r BiocStyle::Biocpkg('SpatialExperiment')` and 
+`r BiocStyle::Biocpkg('SpatialFeatureExperiment')` objects. 
+Cells are approximated as points and their distribution in space is modelled as 
+the log-linear combination of spatial (or non-spatial) covariates. 
+`r BiocStyle::Biocpkg('multipointR')` has a mode to do inferences on the level
+of a single image with `fitModel` and across multiple images 
+with `fitModelAcrossImages`.  
 
 # Installation
 
-`r BiocStyle::Biocpkg('multipointR')` can be installed and loaded from Bioconductor as follows
+`r BiocStyle::Biocpkg('multipointR')` can be installed and loaded
+from Bioconductor as follows
 
-```{r installation, include=FALSE, eval=FALSE}
+```{r installation, include=TRUE, eval=FALSE}
 if (!requireNamespace("BiocManager")) {
     install.packages("BiocManager")
 }
 BiocManager::install("multipointR")
 ```
+
+# Setup
 
 ```{r setup, message=FALSE, warning=FALSE}
 library("multipointR")
@@ -66,17 +87,21 @@ library("patchwork")
 
 # Dataset
 
-For this document, we will use the well established MIBI TOF dataset from @keren2018structured. 
+For this document, we will use the well established MIBI TOF dataset 
+from @keren2018structured. 
 
-```{r, dataloading, warning=FALSE, message=FALSE}
+```{r dataloading, warning=FALSE, message=FALSE}
 spe <- SpatialDatasets::spe_Keren_2018()
 spe
 ```
 
-The preprocessing and visualisation of this dataset is taken from the `r BiocStyle::Biocpkg('Statial')` vignette.
+The preprocessing and visualisation of this dataset is taken from the 
+`r BiocStyle::Biocpkg('Statial')` vignette.
 
-```{r, plotFullDataset, fig.height=50, fig.width=15, echo=FALSE}
-# Code source: https://www.bioconductor.org/packages/release/bioc/vignettes/Statial/inst/doc/Statial.html#kontextual-identifying-discrete-changes-in-cell-state
+```{r preprocessDataset, fig.height=50, fig.width=15}
+# Code source: https://www.bioconductor.org/packages/release/bioc/vignettes/
+# Statial/inst/doc/Statial.html
+# #kontextual-identifying-discrete-changes-in-cell-state
 
 # Examine all cell types in image
 unique(spe$cellType)
@@ -92,7 +117,7 @@ endothelial <- c("Endothelial")
 mesenchymal <- c("Mesenchymal")
 
 tissue <- c(endothelial, mesenchymal)
-immune <- c(bcells, tcells, myeloid, "NK", "other immune") # NK = Natural Killer cells
+immune <- c(bcells, tcells, myeloid, "NK", "other immune")
 
 all <- c(tumour, tissue, immune, "Unidentified")
 
@@ -100,88 +125,89 @@ all <- c(tumour, tissue, immune, "Unidentified")
 spe$cellTypeNew <- spe$cellType
 
 # Select for all cells that express higher than baseline level of p53
-p53Pos = assay(spe)["p53",] > -0.300460
+p53Pos <- assay(spe)["p53", ] > -0.300460
 
 # Find p53+ tumour cells
 spe$cellTypeNew[spe$cellType %in% tumour] <- "Tumour"
 spe$cellTypeNew[p53Pos & spe$cellType %in% tumour] <- "p53_Tumour"
 
-#Group all immune cells under the name "Immune"
+# Group all immune cells under the name "Immune"
 
 spe$cellTypeNew[spe$cellType %in% immune] <- "Immune"
 
 spe$cellTypeNew <- as.factor(spe$cellTypeNew)
 speSub <- subset(spe, , cellTypeNew %in% c("Immune", "Tumour", "p53_Tumour"))
-speSub$cellTypeNew <- factor(speSub$cellTypeNew, levels = c("Immune", "Tumour", "p53_Tumour"))
-
-p_ls <- lapply(unique(colData(speSub)$imageID), function(elem){
-  speSub |>
-  colData() |>
-  cbind(spatialCoords(speSub)) |>
-  as.data.frame() |>
-  dplyr::filter(imageID == elem) |>
-  arrange(cellTypeNew) |>
-  ggplot(aes(x = x, y = y, color = cellTypeNew)) +
-  geom_point(size = 0.75, stroke = 0, show.legend = TRUE) +
-  scale_colour_manual(values = c("#505050", "#D6D6D6","#64BC46"), 
-                      drop = FALSE,
-                      labels = c("Immune", "Tumour", "p53+ Tumour")) + 
-  guides(colour = guide_legend(title = "Cell types", override.aes = list(size=5,  show.legend = TRUE))) +
-  coord_equal() +
-  theme_light() +
-  theme(legend.text=element_text(size=30),
-        legend.title=element_text(size=30))
-})
-
-patchwork::wrap_plots(p_ls, ncol = 4, guides = "collect")
+speSub$cellTypeNew <- factor(speSub$cellTypeNew,
+    levels = c("Immune", "Tumour", "p53_Tumour")
+)
 ```
-
-Plot of the entire dataset with meta-cell type labels "Immune", "Tumour" and "p53+ Tumour".
 
 # Inference with parametric point process models
 
 ## The inhomogeneous Poisson point process
 
-Parametric point process models (PPMs), as implemented in the `spatstat` package, model the distribution of points in space as an (in)homogeneous Poisson distribution [@baddeley2014package].
-Thus, the expected number of points falling in a region $B$ follows an inhomogeneous Poisson process with rate $\lambda(u)$, the local intensity [@baddeley2016spatial]. 
+Parametric point process models (PPMs), as implemented in the `spatstat` 
+package, model the distribution of points in space as an (in)homogeneous 
+Poisson distribution [@baddeley2014package].
+Thus, the expected number of points falling in a region $B$ follows an 
+inhomogeneous Poisson process with rate $\lambda(u)$, 
+the local intensity [@baddeley2016spatial]. 
 
 $$
 \mathbb{E}[n(\mathbf{X} \cap B)] = \int_B \lambda(u)du
 $$
 
-The PPM then models this inhomogeneous intensity $\lambda(u)$ as a function of spatial and non-spatial covariates
+The PPM then models this inhomogeneous intensity $\lambda(u)$ as a function of
+spatial and non-spatial covariates
 
 $$
 \lambda_{\Theta}(u) = \exp(\beta_0(u) + \Theta^TZ(u))
 $$
 
-where $\beta_0(u)$ is the baseline intensity, $Z(u)$ are spatially varying covariate functions and $\Theta$ is the parameter vector to be estimated. In particular, parameters within $\Theta$ would be relevant for making inferences in order to make claims about spatial associations.
+where $\beta_0(u)$ is the baseline intensity, $Z(u)$ are spatially varying 
+covariate functions and $\Theta$ is the parameter vector to be estimated. 
+In particular, parameters within $\Theta$ would be relevant for making 
+inferences in order to make claims about spatial associations.
 
 ## The Gibbs point process
 
-In the Poisson point process, points can be arbitrarily close together, which in a tissue of cells is not feasible. However, a constraint on cell co-localization can be imposed by a Gibbs point process. This class of models allows inhibitory or repulsive interactions between points to be modeled. In our case, we model the interaction between cells as a so-called "hard core" process, whereby the resulting conditional intensity at a location $u$ is given by
+In the Poisson point process, points can be arbitrarily close together, 
+which in a tissue of cells is not feasible. However, a constraint on cell 
+co-localization can be imposed by a Gibbs point process. 
+This class of models allows inhibitory or repulsive interactions between points
+to be modeled. In our case, we model the interaction between cells as a 
+so-called "hard core" process, whereby the resulting conditional intensity at a 
+location $u$ is given by
 
 $$
 \lambda(u \mid \mathbf{x}) = \cases{
-  \phi(u) & \text{if $u$ is permissible}\\
-  0 &  \text{if $u$ is not permissible}\\
+    \phi(u) & \text{if $u$ is permissible}\\
+    0 &  \text{if $u$ is not permissible}\\
 }
 $$
 
-where $\phi(u)$ is the intensity function of an inhomogeneous Poisson process (note the change in notation to before). The hardcore permission is given if the distance of $u$ to any other point $x_i$ is greater than the hard core diameter $r$. This diameter $r$ can be either provided by the user (e.g. prior knowledge on the average cell size) or estimated from the data [@baddeley2016spatial]. 
+where $\phi(u)$ is the intensity function of an inhomogeneous Poisson process 
+(note the change in notation to before). The hardcore permission is given if the
+distance of $u$ to any other point $x_i$ is greater than the hard core diameter
+$r$. This diameter $r$ can be either provided by the user (e.g. prior 
+knowledge on the average cell size) or estimated from the 
+data [@baddeley2016spatial]. 
 
 The estimation from a dataset then becomes the following:
 
 $$
-\lambda_{\Theta}(u \mid \mathbf{x}) = \exp(\beta_0(u) + \Theta^TZ(u)) \cdot h(u,r,\mathbf{x})
+\lambda_{\Theta}(u \mid \mathbf{x}) = \exp(\beta_0(u) + \Theta^TZ(u)) 
+\cdot h(u,r,\mathbf{x})
 $$
 
-where $\Theta$ are the first order terms (similar to the Poisson point process), whereas $h(u,r,\mathbf{x})$, the second order terms, define the hard core interaction with interaction radius $r$, subject to the constraint:
+where $\Theta$ are the first order terms (similar to the Poisson point process),
+whereas $h(u,r,\mathbf{x})$, the second order terms, define the hard core 
+interaction with interaction radius $r$, subject to the constraint:
 
 $$
 h(u,r,\mathbf{x}) = \cases{
-  0 & if $\lVert u-v \rVert \leq r, v \in \mathbf{x}\setminus\{u\}$\\
-  1 & if $\lVert u-v \rVert > r, v \in \mathbf{x}\setminus\{u\}$\\
+    0 & if $\lVert u-v \rVert \leq r, v \in \mathbf{x}\setminus\{u\}$\\
+    1 & if $\lVert u-v \rVert > r, v \in \mathbf{x}\setminus\{u\}$\\
 } 
 $$ 
 
@@ -189,38 +215,52 @@ $$
 
 ## Single image inference
 
-For the single image case, we will analyse the relationship between the distribution of p53+ tumour cells and immune cells in image $6$.
+For the single image case, we will analyse the relationship between the 
+distribution of p53+ tumour cells and immune cells in image $6$.
 
-```{r, singleImage, echo=FALSE}
-# Code source: https://www.bioconductor.org/packages/release/bioc/vignettes/Statial/inst/doc/Statial.html#kontextual-identifying-discrete-changes-in-cell-state
+```{r singleImagePlot, echo=TRUE}
+# Code source: https://www.bioconductor.org/packages/release/bioc/vignettes/
+# Statial/inst/doc/Statial.html
+# #kontextual-identifying-discrete-changes-in-cell-state
 
 # Plot image 6
 
 df <- spe |>
-  colData() |>
-  cbind(spatialCoords(spe)) |>
-  as.data.frame() |>
-  dplyr::filter(imageID == "6") |>
-  dplyr::filter(cellTypeNew %in% c("Immune", "Tumour", "p53_Tumour"))
+    colData() |>
+    cbind(spatialCoords(spe)) |>
+    as.data.frame() |>
+    dplyr::filter(imageID == "6") |>
+    dplyr::filter(cellTypeNew %in%
+        c("Immune", "Tumour", "p53_Tumour"))
 
-df$cellTypeNew <- factor(df$cellTypeNew, levels = c("Immune", "Tumour", "p53_Tumour"))
-p1 <- df |> arrange(cellTypeNew) |>
-  ggplot(aes(x = x, y = y, color = cellTypeNew)) +
-  geom_point(size = 1) +
-  scale_colour_manual(values = c("#505050", "#D6D6D6","#64BC46"),
-                       labels = c("Immune", "Tumour", "p53+ Tumour")) + 
-  guides(colour = guide_legend(title = "Cell types", override.aes = list(size=5))) +
-  coord_equal() +
-  theme_light()
+df$cellTypeNew <- factor(df$cellTypeNew,
+    levels = c("Immune", "Tumour", "p53_Tumour")
+)
+p1 <- df |>
+    arrange(cellTypeNew) |>
+    ggplot(aes(x = x, y = y, color = cellTypeNew)) +
+    geom_point(size = 1) +
+    scale_colour_manual(
+        values = c("#505050", "#D6D6D6", "#64BC46"),
+        labels = c("Immune", "Tumour", "p53+ Tumour")
+    ) +
+    guides(colour = guide_legend(
+        title = "Cell types",
+        override.aes = list(size = 5)
+    )) +
+    coord_equal() +
+    theme_light()
 
 p1
 ```
 
-We notice qualitatively a clearly separated tumour with p53+ cells and immune cells at the tumour border.
+We notice qualitatively a clearly separated tumour with p53+ cells and immune 
+cells at the tumour border.
 
 ### Model of homogeneous intensity
 
-First, we will estimate the distribution of p53+ tumour cells as a *homogeneous* intensity in space, i.e., we fit a model of the form 
+First, we will estimate the distribution of p53+ tumour cells as a 
+*homogeneous* intensity in space, i.e., we fit a model of the form 
 
 $$
 \lambda(u) = \exp(\beta_0) \cdot h(u,r,\mathbf{x})
@@ -228,163 +268,215 @@ $$
 
 with a constant intercept $\beta_0$
 
-```{r, Ppm0}
+```{r Ppm0}
 speSub <- subset(spe, , imageID == "6")
 
-m0 <- fitModel(spe = speSub,
-                marks = "cellTypeNew",
-                interaction = "Hardcore",
-                formula = as.formula("p53_Tumour ~ 1")
+m0 <- fitModel(
+    spe = speSub,
+    marks = "cellTypeNew",
+    interaction = "Hardcore",
+    formula = as.formula("p53_Tumour ~ 1")
 )
 
 m0
 ```
 
-The model is very basic and has not many parameters, let's look at the spatial trend instead
+The model is very basic and has not many parameters, let's look at the
+spatial trend instead
 
-```{r, fig.width=8, fig.height=8}
+```{r Ppm0Plot, fig.width=8, fig.height=8}
 plot(m0)
 ```
 
 The resulting spatial trend is a flat surface. 
 
-This is not a very sensible model since we see clear a inhomogeneous distribution of points in space. Furthermore, we note that the Gibbs hard core model estimated some regions with an intensity of zero because the points are too close to each other. This raises the question whether the cells are actually closer than $10 \mu m$. 
+This is not a very sensible model since we see clear a inhomogeneous 
+distribution of points in space. Furthermore, we note that the Gibbs hard core 
+model estimated some regions with an intensity of zero because the points are 
+too close to each other. This raises the question whether the cells are 
+actually closer than $10 \mu m$. 
 
-This leads to a conceptual question on how to parametrise the Gibbs model best for biological tissue. An alternative to the hard core interaction model is the Strauss interaction model that parametrises not a hard cut-off to zero but rather an interaction probability $\gamma$. A middle ground is the Fiksel process or a Strauss-Hardcore process that combines both a hard core effect for effects $r_h$ where no cells are found and a Strauss/Fiksel process where cells are less likely to be found. This can either be a fixed probability $\gamma$ (Strauss-Hard) or follow a double exponential decay (Fiksel). We will use a Fiksel process for this tutorial as it is more flexible in modelling interactions [@takacs1986interaction].
+This leads to a conceptual question on how to parametrise the Gibbs model best 
+for biological tissue. An alternative to the hard core interaction model is the 
+Strauss interaction model that parametrises not a hard cut-off to zero but 
+rather an interaction probability $\gamma$. A middle ground is the Fiksel 
+process or a Strauss-Hardcore process that combines both a hard core effect for
+effects $r_h$ where no cells are found and a Strauss/Fiksel process where cells 
+are less likely to be found. This can either be a fixed probability $\gamma$ 
+(Strauss-Hard) or follow a double exponential decay (Fiksel). We will use a
+Fiksel process for this tutorial as it is more flexible in modelling 
+interactions [@takacs1986interaction].
 
 $$
 h(u,r_h,r_f,\mathbf{x}) = \cases{
-  0 & if $\lVert u-v \rVert \leq r_h, v \in \mathbf{x}\setminus\{u\}$\\
-  \exp(a\exp(-\kappa d)) & if $r_h < \lVert u-v \rVert \leq r_f, v \in \mathbf{x}\setminus\{u\}$\\
-  1 & if $\lVert u-v \rVert > r_f, v \in \mathbf{x}\setminus\{u\}$\\
+    0 & if $\lVert u-v \rVert \leq r_h, v \in \mathbf{x}\setminus\{u\}$\\
+    \exp(a\exp(-\kappa d)) & if $r_h < \lVert u-v \rVert \leq r_f, v \in 
+    \mathbf{x}\setminus\{u\}$\\
+    1 & if $\lVert u-v \rVert > r_f, v \in \mathbf{x}\setminus\{u\}$\\
 } 
 $$ 
 
-where $r_h$ is the hard core radius (estimated from the data) and $r_f$ is the Fiksel interaction radius (user provided) [@baddeley2016spatial]. 
+where $r_h$ is the hard core radius (estimated from the data) and $r_f$ is the 
+Fiksel interaction radius (user provided) [@baddeley2016spatial]. 
 
 ### Model of inhomogeneous intensity
 
-Next, we will formulate a null model of the distribution of p53 positive cells. For this model, we will specify an inhomogeneous intensity varying with a bivariate spline model of $x$ and $y$ ($s(x,y)$). The model we fit is of the form 
+Next, we will formulate a null model of the distribution of p53 positive cells.
+For this model, we will specify an inhomogeneous intensity varying with a 
+bivariate spline model of $x$ and $y$ ($s(x,y)$). The model we fit is of the 
+form 
 
 $$
 \lambda(u) = \exp(\beta_0(u)) \cdot Z_0(u) \cdot h(u,r_h,r_f,\mathbf{x})
 $$
 
-with a spatially-varying intercept $\beta_0(u)$, which we specify as an offset image of the intensity $Z_0(u)$
+with a spatially-varying intercept $\beta_0(u)$, which we specify as an 
+offset image of the intensity $Z_0(u)$
 
-```{r, Ppm1}
-m1 <- fitModel(spe = speSub,
-                marks = "cellTypeNew",
-                formula = as.formula("p53_Tumour ~ s(x,y)"),
-                interaction = "Fiksel",
-                use.gam = TRUE
+```{r Ppm1}
+m1 <- fitModel(
+    spe = speSub,
+    marks = "cellTypeNew",
+    formula = as.formula("p53_Tumour ~ s(x,y)"),
+    interaction = "Fiksel",
+    use.gam = TRUE
 )
 m1
 ```
 
-We can look at the influence of the parameters with a likelihood ratio test. This is a bit less verbose than the individual $z$-tests for each basis function that `summary(m1)` would provide.
+We can look at the influence of the parameters with a likelihood ratio test. 
+This is a bit less verbose than the individual $z$-tests for each basis 
+function that `summary(m1)` would provide.
 
-```{r}
-anova(m1, test="LRT")
+```{r Ppm1Anova}
+anova(m1, test = "LRT")
 ```
 
-Given the degree to which the log-likelihood improves by adding the intensity function (i.e., the LRT), we can conclude that model of inhomogeneity is more suitable than the homogeneous model for this dataset. 
+Given the degree to which the log-likelihood improves by adding the intensity 
+function (i.e., the LRT), we can conclude that model of inhomogeneity is more 
+suitable than the homogeneous model for this dataset. 
 
-```{r, plotPpm0, fig.width=8, fig.height=8}
+```{r Ppm1Plot, fig.width=8, fig.height=8}
 plot(m1)
 ```
 
-This is also clear from the spatial trend, highlighting that most regions have a very low probability of p53+ cells.
+This is also clear from the spatial trend, highlighting that most regions have 
+a very low probability of p53+ cells.
 
 ### Model of distance to immune cells
 
-From the literature, we know that p53+ tumour cells have immune-modulatory function. Our hypothesis is therefore that p53+ tumour cells will interact spatially with immune cells. In order to test this, we formulate a Gibbs model of distance to immune cells while accounting for an underlying inhomogeneous distribution of p53+ tumour cells. 
+From the literature, we know that p53+ tumour cells have immune-modulatory
+function. Our hypothesis is therefore that p53+ tumour cells will interact 
+spatially with immune cells. In order to test this, we formulate a Gibbs model 
+of distance to immune cells while accounting for an underlying 
+inhomogeneous distribution of p53+ tumour cells. 
 
 The model is then:
 
 $$
-\lambda(u) = \exp(\beta_0 + \beta_{\text{dist}}Z_{\text{dist}}(u)) \cdot Z_0(u) \cdot h(u,r_h,r_f,\mathbf{x})
+\lambda(u) = \exp(\beta_0 + \beta_{\text{dist}}Z_{\text{dist}}(u)) \cdot Z_0(u)
+    \cdot h(u,r_h,r_f,\mathbf{x})
 $$
 
-```{r, Ppm2}
-m2 <- fitModel(spe = speSub,
-                marks = "cellTypeNew",
-                formula = as.formula("p53_Tumour ~ s(x,y) + distfun(Immune)"),
-                interaction = "Fiksel",
-                use.gam = TRUE
+```{r Ppm2}
+m2 <- fitModel(
+    spe = speSub,
+    marks = "cellTypeNew",
+    formula = as.formula("p53_Tumour ~ s(x,y) + distfun(Immune)"),
+    interaction = "Fiksel",
+    use.gam = TRUE
 )
 
 m2
 ```
 
 We can again look at the contribution of the model parameters with a LRT
-```{r}
-anova(m2, test="LRT")
+```{r Ppm2Anova}
+anova(m2, test = "LRT")
 ```
 
-We see that the model including the distance to immune cells fits better than the homogeneous and the inhomogeneous models respectively. 
+We see that the model including the distance to immune cells fits better than 
+the homogeneous and the inhomogeneous models respectively. 
 
-```{r, plotPpm, fig.width=8, fig.height=8}
+```{r Ppm2Plot, fig.width=8, fig.height=8}
 plot(m2)
 ```
 
-In comparison to the spatial trend of the purely inhomogeneous model, the inhomogeneous + distance to immune cells model has a more localised trend in the bottom right corner. 
+In comparison to the spatial trend of the purely inhomogeneous model, the 
+inhomogeneous + distance to immune cells model has a more localised trend 
+in the bottom right corner. 
 
 An important step in fitting complex spatial models is to check goodness-of-fit
 
-```{r, diagnose, fig.width=8, fig.height=8}
+```{r Ppm2diagnose, fig.width=8, fig.height=8}
 diagnose.ppm(m2)
 ```
 
-We note that there is still some unexplained variance of the residuals along both the $x$ and $y$ coordinates but overlaying both in a 2D density the deviations are only minor and centered around zero.
+We note that there is still some unexplained variance of the residuals along 
+both the $x$ and $y$ coordinates but overlaying both in a 2D density the 
+deviations are only minor and centered around zero.
 
-We can also look at the residuals of the model which are in this case not completely normally distributed, indicating some residual unexplained variance. For computational reasons we will reduce the number of simulations to 50.
+We can also look at the residuals of the model which are in this case not 
+completely normally distributed, indicating some residual unexplained variance.
+For computational reasons we will reduce the number of simulations to 50.
 
-```{r, diagnoseQq, fig.width=8, fig.height=8, message = FALSE, results = "hide"}
-p <- qqplot.ppm(m2,nsim=50)
+```{r Ppm2Qq, fig.width=8, fig.height=8, message = FALSE, results = "hide"}
+p <- qqplot.ppm(m2, nsim = 50)
 ```
 
-```{r}
+```{r Ppm2QqPlot}
 p
 ```
 
-Looking at a simulated Q-Q plot of the residuals, we see slightly heavier tails than expected. Given the complexity of the dataset, the model fit is acceptable. 
+Looking at a simulated Q-Q plot of the residuals, we see slightly heavier tails
+than expected. 
+Given the complexity of the dataset, the model fit is acceptable. 
 
 ### Model of segmented objects
 
-Another option that users have is to define a segmented polygon as spatial covariate in their `ppm` model. 
+Another option that users have is to define a segmented polygon as spatial 
+covariate in their `ppm` model. 
 
-To do this, we first perform a segmentation on our image. For simplicity, we will use the Bioconductor package `r BiocStyle::Biocpkg('sosta')`.
-Of course, one can use any other segmentation method, the only requirement being that the polygon is stored as an `sf` object.
+To do this, we first perform a segmentation on our image. For simplicity,
+we will use the Bioconductor package `r BiocStyle::Biocpkg('sosta')`.
+Of course, one can use any other segmentation method, the only requirement
+being that the polygon is stored as an `sf` object.
 
-```{r, sosta, fig.width=8, fig.height=8}
+```{r sostaSegmentation, fig.width=8, fig.height=8}
 segmentedTumour <- sosta::reconstructShapeDensityImage(
-  speSub,
-  marks      = "cellTypeNew",
-  markSelect = c("Tumour"),
-  thres = 1.1e-4
+    speSub,
+    marks = "cellTypeNew",
+    markSelect = c("Tumour"),
+    thres = 1.1e-4
 )
 
-p1 + geom_sf(data = segmentedTumour, inherit.aes = FALSE,
-          fill = NA, color = "red", linewidth = 1)
+p1 + geom_sf(
+    data = segmentedTumour, inherit.aes = FALSE,
+    fill = NA, color = "red", linewidth = 1
+)
 ```
 
-In order to save this polygon we will convert our `SpatialExperiment` object into a `SpatialFeatureExperiment` object and store it in the 
+In order to save this polygon we will convert our `SpatialExperiment` 
+object into a `SpatialFeatureExperiment` object and store it in the 
 `annotGeometries`. 
 
-```{r, toSfe}
+```{r speToSfe}
 sfeSub <- toSpatialFeatureExperiment(speSub)
 annotGeometry(sfeSub, "tumour_mask") <- segmentedTumour
 ```
 
-After this, we can specify our `ppm` with the segmented tumour as spatial covariate. The result will be a logical covariate, indicating the intensity of the response within the tumour (`tumour_mask == TRUE`) as compared to outside.
+After this, we can specify our `ppm` with the segmented tumour as 
+spatial covariate. The result will be a logical covariate, indicating the 
+intensity of the response within the tumour (`tumour_mask == TRUE`) as 
+compared to outside.
 
-```{r, sostaPpm}
-m3 <- fitModel(spe = sfeSub,
-                marks = "cellTypeNew",
-                formula = as.formula("p53_Tumour ~ s(x,y) + tumour_mask + distfun(Immune)"),
-                interaction = "Fiksel",
-                use.gam = TRUE
+```{r Ppm3}
+m3 <- fitModel(
+    spe = sfeSub,
+    marks = "cellTypeNew",
+    formula = as.formula("p53_Tumour ~ s(x,y) + tumour_mask + distfun(Immune)"),
+    interaction = "Fiksel",
+    use.gam = TRUE
 )
 
 m3
@@ -392,129 +484,190 @@ m3
 
 We will check again for the importance of this covariate with a LRT
 
-```{r}
-anova(m3, test="LRT")
+```{r Ppm3Anova}
+anova(m3, test = "LRT")
 ```
 
-We can interpret from this test that the covariate `tumour_mask` is important for describing the distribution of p53+ cells in space. This makes sense, since p53+ tumour cells are a subset of tumour cells and can only be found within the tumour. 
+We can interpret from this test that the covariate `tumour_mask` is important
+for describing the distribution of p53+ cells in space. This makes sense,
+since p53+ tumour cells are a subset of tumour cells and can only be
+found within the tumour. 
 
-```{r, fig.width=8, fig.height=8}
-plot(m3) + geom_sf(data = segmentedTumour, inherit.aes = FALSE,
-          fill = NA, color = "darkred", linewidth = 0.6)
+```{r Ppm3Plot, fig.width=8, fig.height=8}
+plot(m3) + geom_sf(
+    data = segmentedTumour, inherit.aes = FALSE,
+    fill = NA, color = "darkred", linewidth = 0.6
+)
 ```
 
-The model looks very similar to the spatial trend above in the model with just the distance to immune cells defined. We can again look at the improvement of the model diagnostics
+The model looks very similar to the spatial trend above in the model 
+with just the distance to immune cells defined. 
+We can again look at the improvement of the model diagnostics
 
-```{r, diagnose2, fig.width=8, fig.height=8}
+```{r Ppm3Plotdiagnose, fig.width=8, fig.height=8}
 diagnose.ppm(m3)
 ```
 
-The model diagnostics look very similar to the model above. For computational reasons, we did not include the Q-Q plot here, but the result is also similar to the Q-Q plot above.
+The model diagnostics look very similar to the model above. 
+For computational reasons, we did not include the Q-Q plot here, but the result
+is also similar to the Q-Q plot above.
 
 ## Multi-image inference
 
 ### Fitting a model per image
 
-As mentioned above, this dataset contains many images. We may want to fit separate models like those above to each image and look at the resulting  distribution of the coefficients relating the distance to immune cells  $\beta_{\text{dist}}$
+As mentioned above, this dataset contains many images. We may want to fit 
+separate models like those above to each image and look at the resulting 
+distribution of the coefficients relating the distance to immune cells
+$\beta_{\text{dist}}$
 
-```{r, mPpmLs}
-mdlLs <- fitModelAcrossImages(spe = spe,
-                imageId = "imageID",
-                marks = "cellTypeNew",
-                sharedModel = FALSE,
-                interaction = "Hardcore",
-                formula = as.formula("p53_Tumour ~ s(x,y) + distfun(Immune)"),
-                use.gam = TRUE,
-                threshold = 10)
+```{r mPpmLs}
+mdlLs <- fitModelAcrossImages(
+    spe = spe,
+    imageId = "imageID",
+    marks = "cellTypeNew",
+    sharedModel = FALSE,
+    interaction = "Hardcore",
+    formula = as.formula("p53_Tumour ~ s(x,y) + distfun(Immune)"),
+    use.gam = TRUE,
+    threshold = 10
+)
 ```
 
-The dataset describes three tumour subtypes, cold, compartmentalised and mixed. We want to investigate the differences in the distance to immune cells coefficient $\beta_{\text{dist}}$ across these subtypes. First, we need to extract the coefficients from the model and convert this to a `data.frame`. 
+The dataset describes three tumour subtypes, cold, compartmentalised and mixed.
+We want to investigate the differences in the distance to immune cells 
+coefficient $\beta_{\text{dist}}$ across these subtypes. 
+First, we need to extract the coefficients from the model and 
+convert this to a `data.frame`. 
 
-```{r, mPpmToDf, warning=FALSE, message = FALSE, error = FALSE, results = "hide"}
-mdlDf <- mdlToDf(mdlLs = mdlLs,
-                imageCovariates = c("imageID",
-                                    "tumour_type"))
+```{r mPpmToDf, warning=FALSE, message = FALSE, error = FALSE, results = "hide"}
+mdlDf <- mdlToDf(
+    mdlLs = mdlLs,
+    imageCovariates = c(
+        "imageID",
+        "tumour_type"
+    )
+)
 ```
 
-```{r, coefficients}
-mdlDfSub <- mdlDf %>% filter(covariate %in% c("distfun.Immune.")) 
+```{r coefficientsmPpm,  message=FALSE, warning=FALSE, error=FALSE}
+mdlDfSub <- mdlDf %>% filter(covariate %in% c("distfun.Immune."))
 
 ggplot(mdlDfSub, aes(x = covariate, y = Estimate, label = imageID)) +
-  geom_boxplot(outlier.shape = NA, alpha = 0.3) +
-  geom_jitter(aes(color = log10(S.E.)), position = position_jitter(seed = 123)) +
-  geom_text(aes(color = log10(S.E.)), hjust = 0, vjust = 0, position = position_jitter(seed = 123)) +
-  theme_light() +
-  facet_wrap(~tumour_type)
+    geom_boxplot(outlier.shape = NA, alpha = 0.3) +
+    geom_jitter(aes(color = log10(S.E.)),
+        position = position_jitter(seed = 123)
+    ) +
+    geom_text(aes(color = log10(S.E.)),
+        hjust = 0,
+        vjust = 0, position = position_jitter(seed = 123)
+    ) +
+    theme_light() +
+    facet_wrap(~tumour_type)
 ```
 
-We see a difference between the tumour types with cold tumours showing no effect and a generally positive effect of immune cell distance on p53+ cells in compartmentalised and mixed tumours. 
+We see a difference between the tumour types with cold tumours showing no 
+effect and a generally positive effect of immune cell distance on
+p53+ cells in compartmentalised and mixed tumours. 
 
-There are two of these models that are clear outliers, let's look at them in more detail
+There are two of these models that are clear outliers, 
+let's look at them in more detail
 
-```{r, model1213, fig.width=8, fig.height=8}
-#model 12
+```{r model1213Plot, fig.width=8, fig.height=8}
+# model 12
 plot(mdlLs[[12]])
 diagnose.ppm(mdlLs[[12]])
-#model 13
+# model 13
 plot(mdlLs[[13]])
 diagnose.ppm(mdlLs[[13]])
 ```
 
-The first model seems reasonable in terms of diagnostics, however it  contains many cells and thus shows a stronger effect than the other images. The second image shows larger variation in the residuals at both higher $x$ and $y$ values, suggesting that the model is misspecified for this image.
+The first model seems reasonable in terms of diagnostics, 
+however it  contains many cells and thus shows a stronger effect than the 
+other images. The second image shows larger variation in the residuals at both 
+higher $x$ and $y$ values, suggesting that the model is misspecified for 
+this image.
 
 ### Second-stage model of coefficients
 
-We can also test the effect of tumour type (cold, compartmentalised, mixed) on the distance to immune cells coefficient $\beta_{\text{dist}}$ with a linear model. We weight each observation by the inverse of the standard error, as done by @gerber2026mimic. 
+We can also test the effect of tumour type (cold, compartmentalised, mixed)
+on the distance to immune cells coefficient $\beta_{\text{dist}}$ with a
+linear model. We weight each observation by the inverse of the standard error,
+as done by @gerber2026mimic. 
 
 The model is then parametrised as follows:
 
 $$
-{\hat{\beta}}_{\text{dist}} = \gamma_0 + \gamma Z_{\text{stage}} + \epsilon \quad \epsilon \sim \mathcal{N}\!\left(0,\, \sigma^2 \text{SE}_{\text{dist}}\right)
+{\hat{\beta}}_{\text{dist}} = \gamma_0 + \gamma Z_{\text{stage}} + 
+\epsilon \quad \epsilon \sim \mathcal{N}\!\left(0,\, \sigma^2 
+\text{SE}_{\text{dist}}\right)
 $$
 
 We can fit this model
 
-```{r, lm}
-mdl <- lm(Estimate ~ tumour_type, data = mdlDf, 
-          weights = 1/(mdlDf$S.E.), 
-          subset = covariate == "distfun.Immune.") 
+```{r SecondStageLm}
+mdl <- lm(Estimate ~ tumour_type,
+    data = mdlDf,
+    weights = 1 / (mdlDf$S.E.),
+    subset = covariate == "distfun.Immune."
+)
 
 print(summary(mdl))
 ```
 
-We note a significant but modest positive effect for both compartmentalised and mixed tumours in comparison to cold tumours.
+We note a significant but modest positive effect for both compartmentalised
+and mixed tumours in comparison to cold tumours.
 
 ### Fitting a shared model across images
 
-We can also fit a shared model across all images. In that case, we parametrise an interaction effect between the tumour type and the distance to immune cells. Furthermore, we specify a random intercept per sample ID.
+We can also fit a shared model across all images. In that case, 
+we parametrise an interaction effect between the tumour type and the distance 
+to immune cells. Furthermore, we specify a random intercept per sample ID.
 
-In comparison to the `ppm` models from `spatstat.model` `mppm` offers less flexibility in terms of model parametrisation. If you need more flexibility, we recommend you to consider the previous section.
+In comparison to the `ppm` models from `spatstat.model` `mppm` offers less 
+flexibility in terms of model parametrisation. If you need more flexibility, 
+we recommend you to consider the previous section.
 
-For instance, `gam` fits are not available in `mppm`, therefore we account for inhomogeneity with a kernel density estimation of the point distribution. As offsets are also not supported by `mppm` we can add the KDE as a parameter to our estimation via a power law.
+For instance, `gam` fits are not available in `mppm`, 
+therefore we account for inhomogeneity with a kernel density estimation of 
+the point distribution. As offsets are also not supported by `mppm` 
+we can add the KDE as a parameter to our estimation via a power law.
 
-```{r, mPpm}
-mdl <- fitModelAcrossImages(spe = spe,
-                imageId = "imageID",
-                imageLs = seq(10,15),
-                marks = "cellTypeNew",
-                interaction = "Fiksel",
-                formula = as.formula("p53_Tumour ~  log(lambda) + tumour_type:distfun(Immune) + (1|DONOR_NO)"),
-                threshold = 10)
+```{r mPpmShared}
+mdl <- fitModelAcrossImages(
+    spe = spe,
+    imageId = "imageID",
+    imageLs = seq(10, 15),
+    marks = "cellTypeNew",
+    interaction = "Fiksel",
+    formula = as.formula("p53_Tumour ~  log(lambda) +
+        tumour_type:distfun(Immune) + (1|DONOR_NO)"),
+    threshold = 10
+)
 mdl |> summary()
 ```
 
-We notice again a significant effect of the interaction of compartmentalised tumour with distance to immune cells as well as the mixed tumour types. The effect sizes are in both cases very subtle. 
+We notice again a significant effect of the interaction of compartmentalised
+tumour with distance to immune cells as well as the mixed tumour types. 
+The effect sizes are in both cases very subtle. 
 
-In order to assess the model fit we can calculate the sum of the residuals per image and plot them as a function of the condition. In expectation these should be zero.
+In order to assess the model fit we can calculate the sum of the residuals per 
+image and plot them as a function of the condition. 
+In expectation these should be zero.
 
-```{r}
-res <- residuals(mdl, type="raw")
+```{r mPpmSharedResiduals}
+res <- residuals(mdl, type = "raw")
 resInt <- sapply(res, integral.msr)
 print(resInt)
 ```
 
-These residuals are not perfectly centered around zero for some of the models, implying that the model fit from `mppm` is not ideal in this scenario. 
+These residuals are not perfectly centered around zero for some of the models,
+implying that the model fit from `mppm` is not ideal in this scenario. 
 
-```{r}
+# Session Information
+
+```{r sessionInfo}
 sessionInfo()
 ```
+
+# References

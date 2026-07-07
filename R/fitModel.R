@@ -2,25 +2,27 @@
 #' object
 #'
 #' @param spe `SpatialExperiment`; object subset to a single image
-#' @param model `character`; the `spatstat.model` function to use for computation.
-#' Typically one of `ppm`, `kppm` or `dppm`.
+#' @param model `character`; the `spatstat.model` function to
+#' use for computation. Typically one of `ppm`, `kppm` or `dppm`.
 #' @param marks `character`; the column with the labels e.g. cell types
 #' @param formula `formula`; the formula to pass to the `ppm` function
 #' @param family `detpointprocfamily`; Family to use in the point process model.
 #' One of `dppGauss`, `dppMatern`, `dppCauchy`, `dppBessel` or `dppPowerExp`
 #' @param threshold `numeric`; a threshold to apply on the minimum number of
 #' points a point pattern needs to have to fit a `ppm` model to it.
-#' @param interaction `character`; Formula specifying whether to fit a `Hardcore`,
-#' `Strauss`, `Fiksel` or `StraussHard` process to the data
-#' @param lambda `im` or `NULL`; offset of the intensity to include in the model to account for
-#' the underlying inhomogeneity. If this is not user provided, will be estimated
-#'  as inhomogeneous intensity via diggle correction
-#' @param cellspacing `numeric` how much spacing should be accounted for in the 
-#' interaction process due to the cell body. If this is not provided, the cell spacing
-#' parameter is estimated from the data as the minimum nearest neighbour distance
-#' divided by $n(n+1)$ as done in `spatstat.model::Hardcore`. In the case of `StraussHard`,
-#' only the Strauss interaction radius can be user-provided, 
-#' the Hardcore interaction is always estimated from the data.
+#' @param interaction `character`; Formula specifying whether to fit
+#'  a `Hardcore`, `Strauss`, `Fiksel` or `StraussHard` process to the data
+#' @param lambda `im` or `NULL`; offset of the intensity to include in the
+#' model to account for the underlying inhomogeneity.
+#' If this is not user provided, will be estimated as inhomogeneous
+#' intensity via diggle correction
+#' @param cellspacing `numeric` how much spacing should be accounted for in the
+#' interaction process due to the cell body. If this is not provided,
+#' the cell spacing parameter is estimated from the data as the minimum
+#' nearest neighbour distance divided by $n(n+1)$ as done in
+#' `spatstat.model::Hardcore`. In the case of `StraussHard`,
+#' only the Strauss interaction radius can be user-provided, the Hardcore
+#' interaction is always estimated from the data.
 #' @param ... other parameters passed on to `ppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `dppm` model in `spatstat.model`
@@ -30,86 +32,103 @@
 #' spe <- SpatialDatasets::spe_Keren_2018()
 #' speSub <- subset(spe, , imageID == "5")
 #'
-#' mdl <- fitModel(spe = speSub,
-#'                 marks = "cellType",
-#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+#' mdl <- fitModel(
+#'     spe = speSub,
+#'     marks = "cellType",
+#'     formula = as.formula(
+#'         "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
+#'     )
 #' )
-#' 
+#'
 #' @importFrom mgcv s
 #' @importFrom spatstat.model dppm
 #' @importFrom spatstat.model kppm
 #' @importFrom spatstat.model ppm
-#' @import spatstat.geom
-fitModel <- function(spe,
-                     model = "ppm",
-                     marks,
-                     formula,
-                     family = spatstat.model::dppGauss(),
-                     threshold = NULL,
-                     interaction = "Fiksel",
-                     lambda = NULL, 
-                     cellspacing = NA,
-                     ...){
-  #some type assertions
-  stopifnot(
-      is(spe, "SpatialExperiment"),
-      is.character(marks),
-      is(formula, "formula"),
-      is.null(threshold) || is.numeric(threshold),
-      is.character(interaction),
-      is.null(lambda) || is(lambda, "im"),
-      is.na(cellspacing) || is.numeric(cellspacing)
-  )
+fitModel <- function(
+    spe,
+    model = "ppm",
+    marks,
+    formula,
+    family = spatstat.model::dppGauss(),
+    threshold = NULL,
+    interaction = "Fiksel",
+    lambda = NULL,
+    cellspacing = NA,
+    ...
+) {
+    # some type assertions
+    stopifnot(
+        is(spe, "SpatialExperiment"),
+        is.character(marks),
+        is(formula, "formula"),
+        is.null(threshold) || is.numeric(threshold),
+        is.character(interaction) || is.null(interaction),
+        is.null(lambda) || is(lambda, "im"),
+        is.na(cellspacing) || is.numeric(cellspacing)
+    )
 
-  #we do not need the assays anymore, therefore we set them to NULL
-  SummarizedExperiment::assays(spe) <- list()
-  #for computational reasons, remove the rowData as we don't need them
-  SummarizedExperiment::rowData(spe) <- S4Vectors::DataFrame(row.names = rownames(spe))
+    # we do not need the assays anymore, therefore we set them to NULL
+    SummarizedExperiment::assays(spe) <- list()
+    # for computational reasons, remove the rowData as we don't need them
+    SummarizedExperiment::rowData(spe) <- S4Vectors::DataFrame(
+        row.names = rownames(spe)
+    )
 
-  #define the response
-  response <- as.character(formula.tools::lhs(formula))
- 
-  #deparse the Formula and extract the data
-  out <- deparseFormula(spe = spe,
-                        response = response,
-                        formula = formula,
-                        marks = marks, 
-                        lambda = lambda,
-                        threshold = threshold)
-  
-  #if the output of the deparsing is NULL, return a NULL model
-  if(is.null(out)){
-    return(NULL)
-  }
-  
-  formula <- out[["formula"]]
-  data <- out[["data"]]
-  
-  #parametrise the interaction model
-  interactionModel <- defineInteractionModel(interaction = interaction,
-                                            cellspacing = cellspacing,
-                                            response = response,
-                                            data = data)
-  
-  #fix for `sf` object evaluation as suggested by Adrian Baddeley
-  transformSf <- function(z) lapply(z, function(x) { if(inherits(x, "sf")) spatstat.geom::as.owin(x) else x })
-  
-  mdl <- do.call(model, 
-    args = list(Q = formula,
-                data = transformSf(data),
-                interaction = interactionModel,
-                ...)
-  )
-  #add covariates to the mdl list
-  mdl$colData <- colData(spe)
-  class(mdl) <- c("multipointRppm", class(mdl))
-  return(mdl)
+    # define the response
+    response <- as.character(formula.tools::lhs(formula))
+
+    # deparse the Formula and extract the data
+    out <- deparseFormula(
+        spe = spe,
+        response = response,
+        formula = formula,
+        marks = marks,
+        lambda = lambda,
+        threshold = threshold
+    )
+
+    # if the output of the deparsing is NULL, return a NULL model
+    if (is.null(out)) {
+        return(NULL)
+    }
+
+    formula <- out[["formula"]]
+    data <- out[["data"]]
+
+    # parametrise the interaction model
+    interactionModel <- defineInteractionModel(
+        interaction = interaction,
+        cellspacing = cellspacing,
+        response = response,
+        data = data
+    )
+
+    # fix for `sf` object evaluation as suggested by Adrian Baddeley
+    transformSf <- function(z) {
+        lapply(z, function(x) {
+            if (inherits(x, "sf")) spatstat.geom::as.owin(x) else x
+        })
+    }
+
+    mdl <- do.call(model,
+        args = list(
+            Q = formula,
+            data = transformSf(data),
+            interaction = interactionModel,
+            ...
+        )
+    )
+    # add covariates to the mdl list
+    mdl$colData <- colData(spe)
+    class(mdl) <- c("multipointRppm", class(mdl))
+    return(mdl)
 }
 
 
 #' Plot mulitpointR `ppm` objects
 #'
-#' @param x `ppm`; a model fit with `spatstat.model::ppm` or the wrapper `multipointR::fitModel`
+#' @param x `ppm`; a model fit with `spatstat.model::ppm`
+#' or the wrapper `multipointR::fitModel`
 #' @param type `character`; the type to plot, one of "intensity" or "trend"
 #' @param ... further arguments passed to geom_raster
 #'
@@ -119,35 +138,45 @@ fitModel <- function(spe,
 #' spe <- SpatialDatasets::spe_Keren_2018()
 #' speSub <- subset(spe, , imageID == "5")
 #'
-#' mdl <- fitModel(spe = speSub,
-#'                 marks = "cellType",
-#'                 formula = as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)")
+#' mdl <- fitModel(
+#'     spe = speSub,
+#'     marks = "cellType",
+#'     formula = as.formula(
+#'         "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
+#'     )
 #' )
 #' plot(mdl)
 #' @export
 #' @method plot multipointRppm
-#' @import dplyr ggplot2
-plot.multipointRppm <- function(x, type = "trend", ...){
-  ### coded with the help of claude.ai ###
-  stopifnot(verifyclass(x, "ppm"))
-  #extract the response `ppp` object
-  pp_df <- as.data.frame(x$Q$data)
-  #extract the trend image
-  mdl_img <- stats::predict(x, type = type)
-  #convert the image to a dataframe
-  mdl_df <- as.data.frame((mdl_img))
+plot.multipointRppm <- function(x, type = "trend", ...) {
+    ### coded with the help of claude.ai ###
+    stopifnot(spatstat.geom::verifyclass(x, "ppm"))
+    # extract the response `ppp` object
+    pp_df <- as.data.frame(x$Q$data)
+    # extract the trend image
+    mdl_img <- stats::predict(x, type = type)
+    # convert the image to a dataframe
+    mdl_df <- as.data.frame((mdl_img))
 
-  p <- ggplot(mdl_df, aes(x = .data[["x"]], y = .data[["y"]])) +
-  geom_raster(aes(fill = .data[["value"]])) +
-  scale_fill_viridis_c(option = "magma", name = type) +
-  geom_point(data = pp_df, aes(x = .data[["x"]], y = .data[["y"]]),
-             shape = 1,          
-             size = 1.5,
-             color = "white",   
-             stroke = 0.15) +    
-  coord_equal() +
-  theme_light() +
-  labs(title = paste0("Fitted ", type, " surface"), x = "x", y = "y")
-  
-  return(p)
+    p <- ggplot2::ggplot(
+        mdl_df,
+        ggplot2::aes(x = .data[["x"]], y = .data[["y"]])
+    ) +
+        ggplot2::geom_raster(ggplot2::aes(fill = .data[["value"]])) +
+        ggplot2::scale_fill_viridis_c(option = "magma", name = type) +
+        ggplot2::geom_point(
+            data = pp_df, ggplot2::aes(x = .data[["x"]], y = .data[["y"]]),
+            shape = 1,
+            size = 1.5,
+            color = "white",
+            stroke = 0.15
+        ) +
+        ggplot2::coord_equal() +
+        ggplot2::theme_light() +
+        ggplot2::labs(
+            title =
+                paste0("Fitted ", type, " surface"), x = "x", y = "y"
+        )
+
+    return(p)
 }

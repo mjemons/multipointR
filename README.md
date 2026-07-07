@@ -18,6 +18,14 @@ and lets users flexibly define their own `ppm`/`mppm` models with R's formula in
 
 ## Installation
 
+You can install the stable release version of `multipointR` from [Bioconductor](https://bioconductor.org/)
+
+``` r
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("multipointR")
+```
+
 You can install the development version of `multipointR` from
 [GitHub](https://github.com/) with:
 
