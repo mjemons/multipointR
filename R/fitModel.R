@@ -148,6 +148,7 @@ fitModel <- function(
 #' plot(mdl)
 #' @export
 #' @method plot multipointRppm
+#' @importFrom rlang .data
 plot.multipointRppm <- function(x, type = "trend", ...) {
     ### coded with the help of claude.ai ###
     stopifnot(spatstat.geom::verifyclass(x, "ppm"))
