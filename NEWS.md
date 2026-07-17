@@ -1,3 +1,6 @@
+# multipointR 0.99.4
+* more conservative estimation of the window from the min and max coordinates
+
 # multipointR 0.99.3
 * addressed R CMD check note on `.data` being a global variabel. Imported now
 from `rlang` explicitly
