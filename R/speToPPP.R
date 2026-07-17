@@ -21,12 +21,12 @@
     pp <- spatstat.geom::as.ppp(data.frame(x = df$x, y = df$y),
         W = spatstat.geom::owin(
             c(
-                base::min(df$x) - 1,
-                base::max(df$x) + 1
+                base::min(df$x) - 1.49e-8,
+                base::max(df$x) + 1.49e-8
             ),
             c(
-                base::min(df$y) - 1,
-                base::max(df$y) + 1
+                base::min(df$y) - 1.49e-8,
+                base::max(df$y) + 1.49e-8
             )
         )
     )
