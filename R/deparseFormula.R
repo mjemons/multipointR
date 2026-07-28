@@ -111,7 +111,7 @@ deparseFormula <- function(
     # deparse the formula
     deparsed <- formula |>
         formula.tools::rhs() |>
-        deparse()
+        deparse1()
     # split the terms of the formula
     splitTerms <- strsplit(deparsed, "\\+")[[1]] |> trimws()
     for (var in Vars) {
@@ -170,7 +170,7 @@ deparseFormula <- function(
     ### code optimised with claude.ai
     # Handle the random effect grouping variable separately
     if (!is.null(randomEffects)) {
-        groupVar <- trimws(gsub(".*\\|", "", deparse(randomEffects[[1]])))
+        groupVar <- trimws(gsub(".*\\|", "", deparse1(randomEffects[[1]])))
         if (groupVar %in% colnames(colData(spe))) {
             data[[groupVar]] <- unique(colData(spe)[[groupVar]])
         } else {
