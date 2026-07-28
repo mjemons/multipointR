@@ -1,3 +1,6 @@
+# multipointR 0.99.5
+* change from `deparse` to `deparse1` to accommodate long formulae
+
 # multipointR 0.99.4
 * more conservative estimation of the window from the min and max coordinates
 
