@@ -15,6 +15,8 @@ fitModel(
   interaction = "Fiksel",
   lambda = NULL,
   cellspacing = NA,
+  improve.type = NULL,
+  relaxed = FALSE,
   ...
 )
 }
@@ -49,6 +51,12 @@ nearest neighbour distance divided by $n(n+1)$ as done in
 \code{spatstat.model::Hardcore}. In the case of \code{StraussHard},
 only the Strauss interaction radius can be user-provided, the Hardcore
 interaction is always estimated from the data.}
+
+\item{improve.type}{\code{character} the improve.type argument
+from spatstat.model::ppm.ppp, passed on directly}
+
+\item{relaxed}{\code{logical} whether or not to perform a relaxed fit with only
+the non zero coefficients from \code{glmnet} improvement}
 
 \item{...}{other parameters passed on to \code{ppm} model from \code{spatstat.model}}
 }
