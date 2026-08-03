@@ -80,6 +80,9 @@ fitModel <- function(
         row.names = rownames(spe)
     )
 
+    if (identical(improve.type, "enet")) {
+        requireNamespace("glmnet", quietly = TRUE)
+    }
     # define the response
     response <- as.character(formula.tools::lhs(formula))
 

@@ -36,8 +36,7 @@ Imports:
     ggplot2,
     reformulas,
     S4Vectors,
-    rlang,
-    glmnet
+    rlang
 biocViews: Software, Spatial, Transcriptomics, SingleCell
 Suggests: 
     knitr,
@@ -47,6 +46,7 @@ Suggests:
     rmarkdown,
     SpatialDatasets,
     sosta,
+    glmnet,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Depends: R (>= 4.1.0)

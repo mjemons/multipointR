@@ -1,4 +1,5 @@
 library("spatstat.explore")
+library("glmnet")
 spe <- SpatialDatasets::spe_Keren_2018()
 
 test_that("fitModel works with treshold", {
