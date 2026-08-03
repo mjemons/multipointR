@@ -154,7 +154,7 @@ fitModel <- function(
 
         # build the formula from the intact terms not from the model matrix
         # due to the spline bases
-        refitFormula <- stats::reformulate(keepTerms)
+        refitFormula <- stats::reformulate(c("1", keepTerms))
 
         # refit unpenalised with only the non-zero coefficients
         mdl <- stats::update(mdl, Q = refitFormula, improve.type = "none")
