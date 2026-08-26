@@ -4,13 +4,16 @@
 \alias{mdlToDf}
 \title{Convert the list of spatial models to a dataframe}
 \usage{
-mdlToDf(mdlLs, imageCovariates = c("imageID"))
+mdlToDf(mdlLs, imageCovariates = c("imageID"), fine = FALSE)
 }
 \arguments{
 \item{mdlLs}{\code{list}; A list of all the models fit with e.g. \code{ppm}}
 
 \item{imageCovariates}{\code{list}; A list of all the covariates on the
 image level to add to the model dataframe}
+
+\item{fine}{\code{logical} Logical flag passed to \code{summary.ppm} controlling
+the coarse or finer estimate of the covariance matrix}
 }
 \value{
 DataFrame of the model coefficients

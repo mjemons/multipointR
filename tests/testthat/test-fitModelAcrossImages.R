@@ -62,6 +62,7 @@ list of factors into plain vectors and then can fit them", {
         spe = spe,
         imageId = "imageID",
         imageLs = list("1", "2", "3"),
+        sharedModel = TRUE,
         marks = "cellType",
         formula = 
         as.formula("Keratin_Tumour ~ tumour_type + STAGE + distfun(CD8_T_cell)"),

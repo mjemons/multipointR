@@ -17,7 +17,7 @@ fitModelAcrossImages(
   interaction = "Fiksel",
   cellspacing = NA,
   lambda = NULL,
-  sharedModel = TRUE,
+  sharedModel = FALSE,
   ncores = 1,
   verbose = TRUE,
   ...

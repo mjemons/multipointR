@@ -23,6 +23,10 @@
 #' `spatstat.model::Hardcore`. In the case of `StraussHard`,
 #' only the Strauss interaction radius can be user-provided, the Hardcore
 #' interaction is always estimated from the data.
+#' @param improve.type `character` the improve.type argument 
+#' from spatstat.model::ppm.ppp, passed on directly
+#' @param relaxed `logical` whether or not to perform a relaxed fit with only
+#' the non zero coefficients from `glmnet` improvement
 #' @param ... other parameters passed on to `ppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `dppm` model in `spatstat.model`
@@ -54,6 +58,8 @@ fitModel <- function(
     interaction = "Fiksel",
     lambda = NULL,
     cellspacing = NA,
+    improve.type = NULL,
+    relaxed = FALSE,
     ...
 ) {
     # some type assertions
@@ -74,6 +80,9 @@ fitModel <- function(
         row.names = rownames(spe)
     )
 
+    if (identical(improve.type, "enet")) {
+        requireNamespace("glmnet", quietly = TRUE)
+    }
     # define the response
     response <- as.character(formula.tools::lhs(formula))
 
@@ -115,9 +124,43 @@ fitModel <- function(
             Q = formula,
             data = transformSf(data),
             interaction = interactionModel,
+            improve.type = improve.type,
             ...
         )
     )
+    #if we fit an elastic net, some coefficients can be zeroed out
+    #in that case it can be advantageous to refit the model with only
+    #the non-zero coefficients
+    #coded with claude.ai
+    if(improve.type == "enet" && relaxed == TRUE){
+        allCoefs <- stats::coef(mdl)
+        fullFormula <- mdl$trend   
+        # extract the model matrix and the terms from the formula
+        mm <- stats::model.matrix(mdl)
+        termLabels <- base::attr(stats::terms(fullFormula), "term.labels")
+        assignVec  <- base::attr(mm, "assign")  
+
+        # keep any enet fit coefficient which is greater zero -> if one 
+        # spline bases is >0 then the entire spline basis will be kept
+        keepTerms <- c()
+        for (i in base::seq_along(termLabels)) {
+            cols <- base::which(assignVec == i)
+            blockCoefs <- allCoefs[base::names(allCoefs) 
+                %in% base::colnames(mm)[cols]]
+            if (length(blockCoefs) > 0 && any(blockCoefs != 0)) {
+            keepTerms <- c(keepTerms, termLabels[i])
+            }
+        }
+
+        # build the formula from the intact terms not from the model matrix
+        # due to the spline bases
+        refitFormula <- stats::reformulate(c("1", keepTerms))
+
+        # refit unpenalised with only the non-zero coefficients
+        mdl <- stats::update(mdl, Q = refitFormula, improve.type = "none")
+        message("Model was fit with relaxed enet. The number of coefficients can
+        therefore be different than an unregularised fit")
+    }
     # add covariates to the mdl list
     mdl$colData <- colData(spe)
     class(mdl) <- c("multipointRppm", class(mdl))

@@ -1,4 +1,5 @@
 library("spatstat.explore")
+library("glmnet")
 spe <- SpatialDatasets::spe_Keren_2018()
 
 test_that("fitModel works with treshold", {
@@ -128,4 +129,45 @@ test_that("fitModel works with sf polygon from `sosta`", {
     )
     expect_equal(is(mdl), "multipointRppm")
     expect_true(verifyclass(mdl, "ppm"))
+})
+
+test_that("fitModel works with enet lasso reg", {
+    speSub <- subset(spe, , imageID == "15")
+
+    mdl <- fitModel(
+        spe = speSub,
+        marks = "cellType",
+        formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x)"), 
+        improve.type = "enet",
+        improve.args = list(alpha = 1),
+        interaction = "Hardcore"
+    )
+    expect_equal(is(mdl), "multipointRppm")
+    expect_true(verifyclass(mdl, "ppm"))
+})
+
+test_that("fitModel works with enet lasso reg and relaxed fitting", {
+    speSub <- subset(spe, , imageID == "15")
+
+    mdl <- fitModel(
+        spe = speSub,
+        marks = "cellType",
+        formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x)"), 
+        improve.type = "enet",
+        improve.args = list(alpha = 1),
+        interaction = "Hardcore"
+    )
+
+    mdlRelax <- fitModel(
+        spe = speSub,
+        marks = "cellType",
+        formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x)"), 
+        improve.type = "enet",
+        improve.args = list(alpha = 1),
+        interaction = "Hardcore",
+        relaxed = TRUE
+    )
+    expect_equal(is(mdlRelax), "multipointRppm")
+    expect_true(verifyclass(mdlRelax, "ppm"))
+    expect_true(length(coef(mdlRelax)) < length(coef(mdl)))
 })
