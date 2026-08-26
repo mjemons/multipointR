@@ -3,6 +3,8 @@
 #' @param mdlLs `list`; A list of all the models fit with e.g. `ppm`
 #' @param imageCovariates `list`; A list of all the covariates on the
 #' image level to add to the model dataframe
+#' @param fine `logical` Logical flag passed to `summary.ppm` controlling
+#' the coarse or finer estimate of the covariance matrix
 #'
 #' @returns DataFrame of the model coefficients
 #'
@@ -32,13 +34,14 @@
 #'
 #' @importFrom dplyr bind_rows
 mdlToDf <- function(mdlLs,
-    imageCovariates = c("imageID")) {
+    imageCovariates = c("imageID"),
+    fine = FALSE) {
     dfTotal <- data.frame()
     dfTotal <- lapply(mdlLs, function(mdl) {
         if (is.null(mdl)) {
             return(NULL)
         } else {
-            dfCoef <- try(stats::coef(summary(mdl)))
+            dfCoef <- try(stats::coef(summary(mdl, fine=fine)))
             dfCoef$covariate <- rownames(dfCoef)
             imageCovariateDf <- mdl$colData |>
                 subset(, colnames(mdl$colData) %in% imageCovariates) |>

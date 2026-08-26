@@ -1,3 +1,9 @@
+# multipointR 0.99.6
+* adapted vignette to new functionality with `splines` package
+* also reducing time to build vignette
+* enable elastic net fits to regularise complex models e.g. with many spline
+coefficients
+
 # multipointR 0.99.5
 * change from `deparse` to `deparse1` to accommodate long formulae
 
