@@ -27,6 +27,11 @@
 #' from spatstat.model::ppm.ppp, passed on directly
 #' @param relaxed `logical` whether or not to perform a relaxed fit with only
 #' the non zero coefficients from `glmnet` improvement
+#' @param selectionExclude `character`; Formula term specified to be removed
+#' from the selection of the Lasso. This is necessary with 
+#' `improve.type = "enet"`, because else the $p$-values will be not valid due
+#' to obvious double dipping. The inference then becomes an LRT with and without
+#' the variable indicated in `selectionExclude`.
 #' @param ... other parameters passed on to `ppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `dppm` model in `spatstat.model`
@@ -60,6 +65,7 @@ fitModel <- function(
     cellspacing = NA,
     improve.type = NULL,
     relaxed = FALSE,
+    selectionExclude = NULL,
     ...
 ) {
     # some type assertions
@@ -70,7 +76,8 @@ fitModel <- function(
         is.null(threshold) || is.numeric(threshold),
         is.character(interaction) || is.null(interaction),
         is.null(lambda) || is(lambda, "im"),
-        is.na(cellspacing) || is.numeric(cellspacing)
+        is.na(cellspacing) || is.numeric(cellspacing),
+        is.null(selectionExclude) || is.character(selectionExclude)
     )
 
     # we do not need the assays anymore, therefore we set them to NULL
@@ -85,6 +92,47 @@ fitModel <- function(
     }
     # define the response
     response <- as.character(formula.tools::lhs(formula))
+
+    # if we do selection of variables with `improve.type = "enet"` we need
+    # to exclude the inferential variable because else the p-values will be
+    # not valid
+    if(improve.type == "enet" && !is.null(selectionExclude)){
+        termLabels <- base::attr(stats::terms(formula), "term.labels")
+        
+        missingTerms <- setdiff(selectionExclude, termLabels)
+
+        if (length(missingTerms) > 0) {
+            stop(
+                "The following `selectionExclude` terms are not present ",
+                "in the model formula: ",
+                paste(missingTerms, collapse = ", "),
+                ". Supply multiple terms as a character vector, e.g. ",
+                '`c("log(x)", "density(Endothelial)")`.'
+            )
+        }
+        selectionTerms <- setdiff(termLabels, selectionExclude)
+        #keep the full formula for later
+        fullFormula <- formula
+        formula <- stats::reformulate(selectionTerms, 
+            response = response
+        )
+
+        # deparse the full Formula and extract the data - we need this to deparse
+        # also the excluded term
+        outFull <- deparseFormula(
+            spe = spe,
+            response = response,
+            formula = fullFormula,
+            marks = marks,
+            lambda = lambda,
+            threshold = threshold
+        )
+        fullFormula <- outFull[["formula"]]
+        fullData <- outFull[["data"]]
+    }else{
+        fullFormula <- NULL
+        fullData <- NULL
+    }
 
     # deparse the Formula and extract the data
     out <- deparseFormula(
@@ -103,6 +151,12 @@ fitModel <- function(
 
     formula <- out[["formula"]]
     data <- out[["data"]]
+
+    # small hack to overwrite the reduced dataframe with the full dataframe
+    # to be able to refit later
+    if(!is.null(fullData)){
+        data <- fullData
+    }
 
     # parametrise the interaction model
     interactionModel <- defineInteractionModel(
@@ -134,7 +188,11 @@ fitModel <- function(
     #coded with claude.ai
     if(improve.type == "enet" && relaxed == TRUE){
         allCoefs <- stats::coef(mdl)
-        fullFormula <- mdl$trend   
+        # in the case that no variable was to be excluded from the formula
+        # we have to extract it from the mdl 
+        if(is.null(fullFormula)){
+            fullFormula <- mdl$trend 
+        }
         # extract the model matrix and the terms from the formula
         mm <- stats::model.matrix(mdl)
         termLabels <- base::attr(stats::terms(fullFormula), "term.labels")
@@ -151,15 +209,31 @@ fitModel <- function(
             keepTerms <- c(keepTerms, termLabels[i])
             }
         }
+        
+        # problem with pre-evaluated spatstat function handling
+        # improved by GPT 5.6
+        if (!is.null(selectionExclude)) {
+            transformed <- gsub("[()]|::", ".", selectionExclude)
+            matched <- transformed %in% termLabels
+            selectionExclude[matched] <- transformed[matched]
+        }
+        # add the selectionExclude argument back
+        refitTerms <- unique(c(
+            keepTerms,
+            selectionExclude
+        ))
 
         # build the formula from the intact terms not from the model matrix
         # due to the spline bases
-        refitFormula <- stats::reformulate(c("1", keepTerms))
+        refitFormula <- stats::reformulate(refitTerms, 
+            response = response
+        )
 
         # refit unpenalised with only the non-zero coefficients
         mdl <- stats::update(mdl, Q = refitFormula, improve.type = "none")
         message("Model was fit with relaxed enet. The number of coefficients can
-        therefore be different than an unregularised fit")
+        therefore be different than an unregularised fit. The post-selection
+        p-values are only approximate")
     }
     # add covariates to the mdl list
     mdl$colData <- colData(spe)

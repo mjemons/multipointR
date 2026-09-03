@@ -17,6 +17,7 @@ fitModel(
   cellspacing = NA,
   improve.type = NULL,
   relaxed = FALSE,
+  selectionExclude = NULL,
   ...
 )
 }
@@ -57,6 +58,12 @@ from spatstat.model::ppm.ppp, passed on directly}
 
 \item{relaxed}{\code{logical} whether or not to perform a relaxed fit with only
 the non zero coefficients from \code{glmnet} improvement}
+
+\item{selectionExclude}{\code{character}; Formula term specified to be removed
+from the selection of the Lasso. This is necessary with
+\code{improve.type = "enet"}, because else the $p$-values will be not valid due
+to obvious double dipping. The inference then becomes an LRT with and without
+the variable indicated in \code{selectionExclude}.}
 
 \item{...}{other parameters passed on to \code{ppm} model from \code{spatstat.model}}
 }
