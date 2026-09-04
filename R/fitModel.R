@@ -133,7 +133,8 @@ fitModel <- function(
         fullFormula <- NULL
         fullData <- NULL
     }
-
+    print(formula)
+    print(fullFormula)
     # deparse the Formula and extract the data
     out <- deparseFormula(
         spe = spe,
@@ -188,14 +189,10 @@ fitModel <- function(
     #coded with claude.ai
     if(improve.type == "enet" && relaxed == TRUE){
         allCoefs <- stats::coef(mdl)
-        # in the case that no variable was to be excluded from the formula
-        # we have to extract it from the mdl 
-        if(is.null(fullFormula)){
-            fullFormula <- mdl$trend 
-        }
+        selectionFormula <- mdl$trend 
         # extract the model matrix and the terms from the formula
         mm <- stats::model.matrix(mdl)
-        termLabels <- base::attr(stats::terms(fullFormula), "term.labels")
+        termLabels <- base::attr(stats::terms(selectionFormula), "term.labels")
         assignVec  <- base::attr(mm, "assign")  
 
         # keep any enet fit coefficient which is greater zero -> if one 
@@ -212,15 +209,16 @@ fitModel <- function(
         
         # problem with pre-evaluated spatstat function handling
         # improved by GPT 5.6
-        if (!is.null(selectionExclude)) {
-            transformed <- gsub("[()]|::", ".", selectionExclude)
-            matched <- transformed %in% termLabels
-            selectionExclude[matched] <- transformed[matched]
+        if(!is.null(fullFormula)){
+            fullTerms <- base::attr(stats::terms(fullFormula), "term.labels")
+            excludedTerms <- setdiff(fullTerms, termLabels)
+        }else{
+            excludedTerms <- character()
         }
         # add the selectionExclude argument back
         refitTerms <- unique(c(
             keepTerms,
-            selectionExclude
+            excludedTerms
         ))
 
         # build the formula from the intact terms not from the model matrix
