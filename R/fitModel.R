@@ -133,8 +133,6 @@ fitModel <- function(
         fullFormula <- NULL
         fullData <- NULL
     }
-    print(formula)
-    print(fullFormula)
     # deparse the Formula and extract the data
     out <- deparseFormula(
         spe = spe,
