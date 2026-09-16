@@ -25,6 +25,10 @@
 #' interaction is always estimated from the data.
 #' @param improve.type `character` the improve.type argument 
 #' from spatstat.model::ppm.ppp, passed on directly
+#' @param improve.args `list` a named list of arguments passed on to 
+#' improve.type
+#' @param standardize `logical` whether or not to standardise all distances to 
+#' to a 0,1 interval to improve spline and polynomial fits 
 #' @param relaxed `logical` whether or not to perform a relaxed fit with only
 #' the non zero coefficients from `glmnet` improvement
 #' @param selectionExclude `character`; Formula term specified to be removed
@@ -60,11 +64,13 @@ fitModel <- function(
     formula,
     family = spatstat.model::dppGauss(),
     threshold = NULL,
-    interaction = "Fiksel",
+    interaction = "Hardcore",
     lambda = NULL,
     cellspacing = NA,
     improve.type = NULL,
+    improve.args = list(alpha = 1, lambda = NULL, adaptive = TRUE),
     relaxed = FALSE,
+    standardize = FALSE,
     selectionExclude = NULL,
     ...
 ) {
@@ -86,6 +92,15 @@ fitModel <- function(
     SummarizedExperiment::rowData(spe) <- S4Vectors::DataFrame(
         row.names = rownames(spe)
     )
+  
+    # standardise the distance for better fitting of polynomials and 
+    # splines
+    if(standardize){
+        SpatialExperiment::spatialCoords(spe)[,1] <- 
+            scales::rescale(SpatialExperiment::spatialCoords(spe)[,1], to = c(0, 1))
+        SpatialExperiment::spatialCoords(spe)[,2] <- 
+            scales::rescale(SpatialExperiment::spatialCoords(spe)[,2], to = c(0, 1))
+    }
 
     if (identical(improve.type, "enet")) {
         requireNamespace("glmnet", quietly = TRUE)
@@ -96,7 +111,7 @@ fitModel <- function(
     # if we do selection of variables with `improve.type = "enet"` we need
     # to exclude the inferential variable because else the p-values will be
     # not valid
-    if(improve.type == "enet" && !is.null(selectionExclude)){
+    if(identical(improve.type, "enet") && !is.null(selectionExclude)){
         termLabels <- base::attr(stats::terms(formula), "term.labels")
         
         missingTerms <- setdiff(selectionExclude, termLabels)
@@ -116,7 +131,6 @@ fitModel <- function(
         formula <- stats::reformulate(selectionTerms, 
             response = response
         )
-
         # deparse the full Formula and extract the data - we need this to deparse
         # also the excluded term
         outFull <- deparseFormula(
@@ -178,6 +192,7 @@ fitModel <- function(
             data = transformSf(data),
             interaction = interactionModel,
             improve.type = improve.type,
+            improve.args = improve.args,
             ...
         )
     )
@@ -185,7 +200,7 @@ fitModel <- function(
     #in that case it can be advantageous to refit the model with only
     #the non-zero coefficients
     #coded with claude.ai
-    if(improve.type == "enet" && relaxed == TRUE){
+    if(identical(improve.type, "enet") && relaxed == TRUE){
         allCoefs <- stats::coef(mdl)
         selectionFormula <- mdl$trend 
         # extract the model matrix and the terms from the formula
@@ -232,7 +247,8 @@ fitModel <- function(
         p-values are only approximate")
     }
     # add covariates to the mdl list
-    mdl$colData <- colData(spe)
+    mdl$spe <- spe
+    mdl$marks <- marks
     class(mdl) <- c("multipointRppm", class(mdl))
     return(mdl)
 }

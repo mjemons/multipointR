@@ -30,13 +30,15 @@ Imports:
     spatstat.geom,
     spatstat.model,
     spatstat.explore,
+    spatstat.random,
     formula.tools, 
     mgcv,
     dplyr,
     ggplot2,
     reformulas,
     S4Vectors,
-    rlang
+    rlang,
+    scales
 biocViews: Software, Spatial, Transcriptomics, SingleCell
 Suggests: 
     knitr,

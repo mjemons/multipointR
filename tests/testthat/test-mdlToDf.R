@@ -17,5 +17,5 @@ test_that("mdlToDf works", {
         imageCovariates = imageCovariates
     )
     expect_true(nrow(mdlDf) == length(unique(mdlDf$imageID)) *
-        (length(imageCovariates) + 1))
+        length(imageCovariates))
 })

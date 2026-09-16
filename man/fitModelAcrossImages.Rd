@@ -14,7 +14,7 @@ fitModelAcrossImages(
   formula,
   family = spatstat.model::dppGauss(),
   threshold = NULL,
-  interaction = "Fiksel",
+  interaction = "Hardcore",
   cellspacing = NA,
   lambda = NULL,
   sharedModel = FALSE,

@@ -12,11 +12,13 @@ fitModel(
   formula,
   family = spatstat.model::dppGauss(),
   threshold = NULL,
-  interaction = "Fiksel",
+  interaction = "Hardcore",
   lambda = NULL,
   cellspacing = NA,
   improve.type = NULL,
+  improve.args = list(alpha = 1, lambda = NULL, adaptive = TRUE),
   relaxed = FALSE,
+  standardize = FALSE,
   selectionExclude = NULL,
   ...
 )
@@ -56,8 +58,14 @@ interaction is always estimated from the data.}
 \item{improve.type}{\code{character} the improve.type argument
 from spatstat.model::ppm.ppp, passed on directly}
 
+\item{improve.args}{\code{list} a named list of arguments passed on to
+improve.type}
+
 \item{relaxed}{\code{logical} whether or not to perform a relaxed fit with only
 the non zero coefficients from \code{glmnet} improvement}
+
+\item{standardize}{\code{logical} whether or not to standardise all distances to
+to a 0,1 interval to improve spline and polynomial fits}
 
 \item{selectionExclude}{\code{character}; Formula term specified to be removed
 from the selection of the Lasso. This is necessary with

@@ -48,6 +48,8 @@ test_that("fitModelAcrossImages works as shared model with random effects", {
         imageId = "imageID",
         imageLs = list("1", "2"),
         sharedModel = TRUE,
+        improve.type = "none",
+        interaction = "Fiksel",
         marks = "cellType",
         formula =
         as.formula("Keratin_Tumour ~ distfun(CD8_T_cell) + (1|sample_id)"),

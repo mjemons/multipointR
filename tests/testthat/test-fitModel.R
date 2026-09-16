@@ -38,7 +38,6 @@ test_that("fitModel works with mixed formulas of changed
         formula = 
         as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(Endothelial))"),
         interaction = "Fiksel",
-        cellspacing = 1,
         threshold = 10
     )
     expect_equal(is(mdl), "multipointRppm")

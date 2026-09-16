@@ -43,8 +43,9 @@ mdlToDf <- function(mdlLs,
         } else {
             dfCoef <- try(stats::coef(summary(mdl, fine=fine)))
             dfCoef$covariate <- rownames(dfCoef)
-            imageCovariateDf <- mdl$colData |>
-                subset(, colnames(mdl$colData) %in% imageCovariates) |>
+            imageCovariateDf <- SummarizedExperiment::colData(mdl$spe) |>
+                subset(, colnames(SummarizedExperiment::colData(mdl$spe)) 
+                    %in% imageCovariates) |>
                 unique()
             dfCoef <- cbind(dfCoef, imageCovariateDf)
             return(dfCoef)
