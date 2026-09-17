@@ -30,6 +30,10 @@
             )
         )
     )
+    stopifnot(
+        "window x-range has a negative edge" = all(pp$window$xrange >= 0),
+        "window y-range has a negative edge" = all(pp$window$yrange >= 0)
+    )
     # set the marks
     if (!continuous) {
         spatstat.geom::marks(pp) <- factor(df[[marks]])

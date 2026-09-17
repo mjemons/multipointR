@@ -18,7 +18,7 @@ fitModel(
   improve.type = NULL,
   improve.args = list(alpha = 1, lambda = NULL, adaptive = TRUE),
   relaxed = FALSE,
-  standardize = FALSE,
+  standardize = TRUE,
   selectionExclude = NULL,
   ...
 )

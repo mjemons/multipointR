@@ -70,7 +70,7 @@ fitModel <- function(
     improve.type = NULL,
     improve.args = list(alpha = 1, lambda = NULL, adaptive = TRUE),
     relaxed = FALSE,
-    standardize = FALSE,
+    standardize = TRUE,
     selectionExclude = NULL,
     ...
 ) {
@@ -95,11 +95,16 @@ fitModel <- function(
   
     # standardise the distance for better fitting of polynomials and 
     # splines
+    # we cannot directly do the interval 0,1 as the window has to be a bit larger
+    # and smaller than this. By adding the constant 1.49e-8 which we add and
+    # subtract from the window later, the observation window is exactly 0,1 
     if(standardize){
         SpatialExperiment::spatialCoords(spe)[,1] <- 
-            scales::rescale(SpatialExperiment::spatialCoords(spe)[,1], to = c(0, 1))
+            scales::rescale(SpatialExperiment::spatialCoords(spe)[,1], 
+            to = c(0 + 1.49e-8, 1 - 1.49e-8))
         SpatialExperiment::spatialCoords(spe)[,2] <- 
-            scales::rescale(SpatialExperiment::spatialCoords(spe)[,2], to = c(0, 1))
+            scales::rescale(SpatialExperiment::spatialCoords(spe)[,2],
+            to = c(0 + 1.49e-8, 1 - 1.49e-8))
     }
 
     if (identical(improve.type, "enet")) {
