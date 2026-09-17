@@ -4,18 +4,14 @@
 \alias{permTest}
 \title{Permutation test for a single point pattern LRT between the model and a null}
 \usage{
-permTest(mdl, mdl0, nsim = 99, studentised = TRUE)
+permTest(mdl, coefficient, nsim = 99)
 }
 \arguments{
 \item{mdl}{\code{ppm} the original model}
 
-\item{mdl0}{\code{ppm} the null model}
+\item{coefficient}{\code{character} the coefficient(s) to test}
 
 \item{nsim}{\code{integer} the number of simulations}
-
-\item{studentised}{\code{logical} whether or not to perform a studentisation; a
-division of the test statistic by an estimate of the  standard errors. This
-makes the permutation distribution more stable to non-equal variances.}
 }
 \value{
 named \code{list} with the permutation distribution and the p-value
@@ -35,13 +31,6 @@ mdl <- fitModel(
        "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
    )
 )
-mdl0 <- fitModel(
-   spe = speSub,
-   marks = "cellType",
-   formula = as.formula(
-       "Keratin_Tumour ~ 1"
-   )
-)
 
-permTest(mdl, mdl0, nsim = 10)
+permTest(mdl, coefficient = "spatstat.geom::distfun(CD8_T_cell)", nsim = 10)
 }

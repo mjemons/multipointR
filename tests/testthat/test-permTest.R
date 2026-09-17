@@ -9,15 +9,8 @@ test_that("permutation test produces valid p-values", {
         "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
     )
   )
-  mdl0 <- fitModel(
-    spe = speSub,
-    marks = "cellType",
-    formula = as.formula(
-        "Keratin_Tumour ~ 1"
-    )
-  )
 
-  res <- permTest(mdl, mdl0, nsim = 10)
+  res <- permTest(mdl, "spatstat.geom::distfun(CD8_T_cell)", nsim = 10)
 
   expect_true(dplyr::between(res$pVal, 0, 1))
 })
