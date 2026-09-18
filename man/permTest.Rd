@@ -4,7 +4,7 @@
 \alias{permTest}
 \title{Permutation test for a single point pattern LRT between the model and a null}
 \usage{
-permTest(mdl, coefficient, nsim = 99)
+permTest(mdl, coefficient, nsim = 99, null = "rlabel")
 }
 \arguments{
 \item{mdl}{\code{ppm} the original model}
@@ -12,6 +12,8 @@ permTest(mdl, coefficient, nsim = 99)
 \item{coefficient}{\code{character} the coefficient(s) to test}
 
 \item{nsim}{\code{integer} the number of simulations}
+
+\item{null}{\code{character} the null to assume, either \code{rlabel} or \code{rshift}}
 }
 \value{
 named \code{list} with the permutation distribution and the p-value

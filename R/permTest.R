@@ -3,6 +3,7 @@
 #' @param mdl `ppm` the original model
 #' @param coefficient `character` the coefficient(s) to test
 #' @param nsim `integer` the number of simulations
+#' @param null `character` the null to assume, either `rlabel` or `rshift`
 #'
 #' @returns named `list` with the permutation distribution and the p-value
 #' @export
@@ -24,7 +25,8 @@
 
 permTest <- function(mdl, 
   coefficient,
-  nsim = 99){
+  nsim = 99,
+  null = "rlabel"){
   #obtain the original data
   #pp <- spatstat.model::data.ppm(mdl)
   pp <- speToPPP(spe = mdl$spe, marks = mdl$marks)
@@ -32,7 +34,13 @@ permTest <- function(mdl,
   call <- stats::getCall(mdl)$Q
   response <- as.character(formula.tools::lhs(call))
   #perform the permutations
-  sims <- spatstat.random::rshift(pp, nsim = nsim)
+  if(null == "rshift"){
+    sims <- spatstat.random::rshift(pp, nsim = nsim, edge = "none")
+  }else if(null == "rlabel"){
+    sims <- spatstat.random::rlabel(pp, nsim = nsim)
+  }else{
+    stop("The null is not supported")
+  }
 
   #need to rewrite the coefficient to correspond to `multipointR` internals
   coefficient <- gsub("[()]|::", ".", coefficient)
