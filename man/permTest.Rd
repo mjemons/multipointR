@@ -21,6 +21,10 @@ named \code{list} with the permutation distribution and the p-value
 \description{
 Permutation test for a single point pattern LRT between the model and a null
 }
+\details{
+This functions is experimental. In most cases the null model of \code{rlabel} and
+\code{rshift} are non-sensical and should be avoided.
+}
 \examples{
 
 spe <- SpatialDatasets::spe_Keren_2018()

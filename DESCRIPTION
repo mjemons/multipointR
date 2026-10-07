@@ -37,8 +37,7 @@ Imports:
     ggplot2,
     reformulas,
     S4Vectors,
-    rlang,
-    scales
+    rlang
 biocViews: Software, Spatial, Transcriptomics, SingleCell
 Suggests: 
     knitr,

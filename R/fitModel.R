@@ -99,12 +99,14 @@ fitModel <- function(
     # and smaller than this. By adding the constant 1.49e-8 which we add and
     # subtract from the window later, the observation window is exactly 0,1 
     if(standardize){
-        SpatialExperiment::spatialCoords(spe)[,1] <- 
-            scales::rescale(SpatialExperiment::spatialCoords(spe)[,1], 
-            to = c(0 + 1.49e-8, 1 - 1.49e-8))
-        SpatialExperiment::spatialCoords(spe)[,2] <- 
-            scales::rescale(SpatialExperiment::spatialCoords(spe)[,2],
-            to = c(0 + 1.49e-8, 1 - 1.49e-8))
+        #if the window is not square determine the longest edge, this is the 
+        #scaling factor
+        ### coded with claude.ai Opus 5.5
+        coords <- SpatialExperiment::spatialCoords(spe)
+        scale_factor <- max(diff(range(coords[, 1])), diff(range(coords[, 2])))
+        coords[, 1] <- (coords[, 1] - min(coords[, 1])) / scale_factor
+        coords[, 2] <- (coords[, 2] - min(coords[, 2])) / scale_factor
+        SpatialExperiment::spatialCoords(spe) <- coords
     }
 
     if (identical(improve.type, "enet")) {
@@ -190,17 +192,39 @@ fitModel <- function(
             if (inherits(x, "sf")) spatstat.geom::as.owin(x) else x
         })
     }
-
-    mdl <- do.call(model,
-        args = list(
-            Q = formula,
-            data = transformSf(data),
-            interaction = interactionModel,
-            improve.type = improve.type,
-            improve.args = improve.args,
-            ...
+    if(model == "ppm"){
+        mdl <- do.call(model,
+            args = list(
+                Q = formula,
+                data = transformSf(data),
+                interaction = interactionModel,
+                improve.type = improve.type,
+                improve.args = improve.args,
+                ...
+            )
         )
-    )
+    }else if(model == "kppm"){
+        mdl <- do.call(model,
+            args = list(
+                X = formula,
+                data = transformSf(data),
+                improve.type = improve.type,
+                improve.args = improve.args,
+                ...
+            )
+        )
+    }else if(model == "dppm"){
+        mdl <- do.call(model,
+            args = list(
+                formula = formula,
+                family = family,
+                data = transformSf(data),
+                ...
+            )
+        )
+    }else{
+        stop("Model is not implemented")
+    }
     #if we fit an elastic net, some coefficients can be zeroed out
     #in that case it can be advantageous to refit the model with only
     #the non-zero coefficients

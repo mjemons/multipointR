@@ -8,6 +8,11 @@
 #' @returns named `list` with the permutation distribution and the p-value
 #' @export
 #' 
+#' @details
+#' This functions is experimental. In most cases the null model of `rlabel` and
+#' `rshift` are non-sensical and should be avoided.
+#' 
+#' 
 #' @examples
 #' 
 #' spe <- SpatialDatasets::spe_Keren_2018()
@@ -33,14 +38,6 @@ permTest <- function(mdl,
   #recover the response 
   call <- stats::getCall(mdl)$Q
   response <- as.character(formula.tools::lhs(call))
-  #perform the permutations
-  if(null == "rshift"){
-    sims <- spatstat.random::rshift(pp, nsim = nsim, edge = "none")
-  }else if(null == "rlabel"){
-    sims <- spatstat.random::rlabel(pp, nsim = nsim)
-  }else{
-    stop("The null is not supported")
-  }
 
   #need to rewrite the coefficient to correspond to `multipointR` internals
   coefficient <- gsub("[()]|::", ".", coefficient)
@@ -48,6 +45,14 @@ permTest <- function(mdl,
   mdlP <-  stats::update(mdl, interaction = NULL)
   mdl0 <- stats::update(mdl, fm0, interaction = NULL)
 
+  #perform the permutations
+  if(null == "rshift"){
+    sims <- spatstat.random::rshift(pp, nsim = nsim, edge = "torus")
+  }else if(null == "rlabel"){
+    sims <- spatstat.random::rlabel(pp, nsim = nsim)
+  }else{
+    stop("null model not implemented")
+  }
   #written with the help of Opus 5
   Dobs <- 2 * (as.numeric(stats::logLik(mdlP)) - as.numeric(stats::logLik(mdl0)))
   Dsim <- sapply(sims, function(Y) {
