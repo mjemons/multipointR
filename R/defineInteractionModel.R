@@ -50,7 +50,7 @@ defineInteractionModel <- function(
 ) {
     # calculate the minimum nearest neighbour distance if `is.null(cellspacing)`
     ### adapted from spatstat.model::Hardcore GPL-2 licensed
-    if (length(cellspacing) > 0 || is.na(cellspacing)) {
+    if (is.null(cellspacing) || is.na(cellspacing)) {
         minNnDist <- spatstat.geom::minnndist(data[[response]])
         nX <- spatstat.geom::npoints(data[[response]])
         cellspacing <- minNnDist * nX / (nX + 1)

@@ -36,6 +36,7 @@
 #' `improve.type = "enet"`, because else the $p$-values will be not valid due
 #' to obvious double dipping. The inference then becomes an LRT with and without
 #' the variable indicated in `selectionExclude`.
+#' @param ctrlKppm `list`; a named list to control the `kppm` fit
 #' @param ... other parameters passed on to `ppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `dppm` model in `spatstat.model`
@@ -72,6 +73,7 @@ fitModel <- function(
     relaxed = FALSE,
     standardize = TRUE,
     selectionExclude = NULL,
+    ctrlKppm=list(),
     ...
 ) {
     # some type assertions
@@ -178,13 +180,30 @@ fitModel <- function(
         data <- fullData
     }
 
-    # parametrise the interaction model
-    interactionModel <- defineInteractionModel(
-        interaction = interaction,
-        cellspacing = cellspacing,
-        response = response,
-        data = data
-    )
+    #if the model is a `ppm` define an interaction model
+    if(model == "ppm"){
+        # parametrise the interaction model
+        interactionModel <- defineInteractionModel(
+            interaction = interaction,
+            cellspacing = cellspacing,
+            response = response,
+            data = data
+        )
+    }else if(model == "kppm"){
+        if(interaction == "Hardcore"){
+            if (is.null(cellspacing) || is.na(cellspacing)) {
+                minNnDist <- spatstat.geom::minnndist(data[[response]])
+                nX <- spatstat.geom::npoints(data[[response]])
+                cellspacing <- minNnDist * nX / (nX + 1)
+            }
+            ctrlKppm$rmin <- cellspacing
+        }else if(is.null(interaction)){
+            ctrlKppm <- ctrlKppm
+        }else{
+            stop(interaction, " is not implemented for ", model)
+        }
+    }
+    
 
     # fix for `sf` object evaluation as suggested by Adrian Baddeley
     transformSf <- function(z) {
@@ -210,6 +229,7 @@ fitModel <- function(
                 data = transformSf(data),
                 improve.type = improve.type,
                 improve.args = improve.args,
+                ctrl = ctrlKppm,
                 ...
             )
         )

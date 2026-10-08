@@ -20,6 +20,7 @@ fitModel(
   relaxed = FALSE,
   standardize = TRUE,
   selectionExclude = NULL,
+  ctrlKppm = list(),
   ...
 )
 }
@@ -72,6 +73,8 @@ from the selection of the Lasso. This is necessary with
 \code{improve.type = "enet"}, because else the $p$-values will be not valid due
 to obvious double dipping. The inference then becomes an LRT with and without
 the variable indicated in \code{selectionExclude}.}
+
+\item{ctrlKppm}{\code{list}; a named list to control the \code{kppm} fit}
 
 \item{...}{other parameters passed on to \code{ppm} model from \code{spatstat.model}}
 }

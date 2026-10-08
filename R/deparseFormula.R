@@ -81,7 +81,7 @@ deparseFormula <- function(
     # provided offset
     if (is.null(lambda)) {
         lambda <- spatstat.explore::density.ppp(ppResponse,
-            sigma = spatstat.explore::bw.ppl(ppResponse),
+            sigma = spatstat.explore::bw.scott(ppResponse),
             positive = TRUE,
             diggle = TRUE,
             edge = TRUE,

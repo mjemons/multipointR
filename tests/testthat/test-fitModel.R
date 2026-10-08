@@ -226,3 +226,31 @@ test_that("fitModel fails if more than one element is in the selection", {
         relaxed = TRUE
     ))
 })
+
+test_that("fitModel works with custom lambda", {
+    speSub <- subset(spe, , imageID == "15")
+
+    pp <- speToPPP(speSub, mark = "cellType")
+
+    ppResponse <- spatstat.geom::unmark(pp[pp$marks %in% "Keratin_Tumour", drop = TRUE])
+
+    lambda <- spatstat.explore::density.ppp(ppResponse,
+            sigma = spatstat.explore::bw.ppl(ppResponse),
+            positive = TRUE,
+            diggle = TRUE,
+            edge = TRUE,
+            kernel = "gaussian"
+        )
+
+    mdl1 <- fitModel(
+        spe = speSub,
+        marks = "cellType",
+        formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x)"), 
+        lambda = lambda,
+        improve.args = list(alpha = 1),
+        standardize = FALSE,
+        interaction = "Hardcore"
+    )
+
+    expect_equal(is(mdl1), "multipointRppm")
+})
