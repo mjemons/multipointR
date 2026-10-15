@@ -6,8 +6,8 @@
 #' use for computation. Typically one of `ppm`, `kppm` or `dppm`.
 #' @param marks `character`; the column with the labels e.g. cell types
 #' @param formula `formula`; the formula to pass to the `ppm` function
-#' @param family `detpointprocfamily`; Family to use in the point process model.
-#' One of `dppGauss`, `dppMatern`, `dppCauchy`, `dppBessel` or `dppPowerExp`
+#' @param clusters `character`; Cox Process or clustering variant to use with
+#' `kppm`. One of either "Thomas", "MatClust", "Cauchy", "VarGamma", "LGCP"
 #' @param threshold `numeric`; a threshold to apply on the minimum number of
 #' points a point pattern needs to have to fit a `ppm` model to it.
 #' @param interaction `character`; Formula specifying whether to fit
@@ -23,14 +23,16 @@
 #' `spatstat.model::Hardcore`. In the case of `StraussHard`,
 #' only the Strauss interaction radius can be user-provided, the Hardcore
 #' interaction is always estimated from the data.
-#' @param improve.type `character` the improve.type argument 
-#' from spatstat.model::ppm.ppp, passed on directly
-#' @param improve.args `list` a named list of arguments passed on to 
-#' improve.type
+#' @param improve.type `character` the improve.type argument to `ppm` or `kppm``
+#' from spatstat.model::ppm.ppp, passed on directly. Check the documentation for
+#' `ppm` or `kppm` for more details
+#' @param method.kppm `character` the method to use for `kppm`
 #' @param standardize `logical` whether or not to standardise all distances to 
 #' to a 0,1 interval to improve spline and polynomial fits 
 #' @param relaxed `logical` whether or not to perform a relaxed fit with only
 #' the non zero coefficients from `glmnet` improvement
+#' @param penalised `logical` whether or not to penalise against extreme values
+#' in the clustering in the objective function
 #' @param selectionExclude `character`; Formula term specified to be removed
 #' from the selection of the Lasso. This is necessary with 
 #' `improve.type = "enet"`, because else the $p$-values will be not valid due
@@ -60,17 +62,18 @@
 #' @importFrom spatstat.model ppm
 fitModel <- function(
     spe,
-    model = "ppm",
+    model = "kppm",
     marks,
     formula,
-    family = spatstat.model::dppGauss(),
+    clusters = "LGCP",
     threshold = NULL,
     interaction = "Hardcore",
     lambda = NULL,
     cellspacing = NA,
     improve.type = NULL,
-    improve.args = list(alpha = 1, lambda = NULL, adaptive = TRUE),
+    method.kppm = "palm",
     relaxed = FALSE,
+    penalised = TRUE,
     standardize = TRUE,
     selectionExclude = NULL,
     ctrlKppm=list(),
@@ -218,7 +221,6 @@ fitModel <- function(
                 data = transformSf(data),
                 interaction = interactionModel,
                 improve.type = improve.type,
-                improve.args = improve.args,
                 ...
             )
         )
@@ -227,9 +229,11 @@ fitModel <- function(
             args = list(
                 X = formula,
                 data = transformSf(data),
+                clusters = clusters,
                 improve.type = improve.type,
-                improve.args = improve.args,
+                method = method.kppm,
                 ctrl = ctrlKppm,
+                penalised = penalised,
                 ...
             )
         )
@@ -237,7 +241,6 @@ fitModel <- function(
         mdl <- do.call(model,
             args = list(
                 formula = formula,
-                family = family,
                 data = transformSf(data),
                 ...
             )
@@ -328,6 +331,10 @@ fitModel <- function(
 #' @method plot multipointRppm
 #' @importFrom rlang .data
 plot.multipointRppm <- function(x, type = "trend", ...) {
+    #if we have a `kppm` extract the `ppm` fit from the first step
+    if("kppm" %in% class(x)){
+      x <- spatstat.model::as.ppm(x)
+    }
     ### coded with the help of claude.ai ###
     stopifnot(spatstat.geom::verifyclass(x, "ppm"))
     # extract the response `ppp` object

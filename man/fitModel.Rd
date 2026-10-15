@@ -7,17 +7,18 @@ object}
 \usage{
 fitModel(
   spe,
-  model = "ppm",
+  model = "kppm",
   marks,
   formula,
-  family = spatstat.model::dppGauss(),
+  clusters = "LGCP",
   threshold = NULL,
   interaction = "Hardcore",
   lambda = NULL,
   cellspacing = NA,
   improve.type = NULL,
-  improve.args = list(alpha = 1, lambda = NULL, adaptive = TRUE),
+  method.kppm = "palm",
   relaxed = FALSE,
+  penalised = TRUE,
   standardize = TRUE,
   selectionExclude = NULL,
   ctrlKppm = list(),
@@ -34,8 +35,8 @@ use for computation. Typically one of \code{ppm}, \code{kppm} or \code{dppm}.}
 
 \item{formula}{\code{formula}; the formula to pass to the \code{ppm} function}
 
-\item{family}{\code{detpointprocfamily}; Family to use in the point process model.
-One of \code{dppGauss}, \code{dppMatern}, \code{dppCauchy}, \code{dppBessel} or \code{dppPowerExp}}
+\item{clusters}{\code{character}; Cox Process or clustering variant to use with
+\code{kppm}. One of either "Thomas", "MatClust", "Cauchy", "VarGamma", "LGCP"}
 
 \item{threshold}{\code{numeric}; a threshold to apply on the minimum number of
 points a point pattern needs to have to fit a \code{ppm} model to it.}
@@ -56,14 +57,15 @@ nearest neighbour distance divided by $n(n+1)$ as done in
 only the Strauss interaction radius can be user-provided, the Hardcore
 interaction is always estimated from the data.}
 
-\item{improve.type}{\code{character} the improve.type argument
-from spatstat.model::ppm.ppp, passed on directly}
+\item{improve.type}{\code{character} the improve.type argument to \code{ppm} or \verb{kppm`` from spatstat.model::ppm.ppp, passed on directly. Check the documentation for }ppm\code{or}kppm` for more details}
 
-\item{improve.args}{\code{list} a named list of arguments passed on to
-improve.type}
+\item{method.kppm}{\code{character} the method to use for \code{kppm}}
 
 \item{relaxed}{\code{logical} whether or not to perform a relaxed fit with only
 the non zero coefficients from \code{glmnet} improvement}
+
+\item{penalised}{\code{logical} whether or not to penalise against extreme values
+in the clustering in the objective function}
 
 \item{standardize}{\code{logical} whether or not to standardise all distances to
 to a 0,1 interval to improve spline and polynomial fits}

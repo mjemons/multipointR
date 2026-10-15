@@ -30,7 +30,7 @@
 #'
 #'
 .fitSingelModelsPerImage <- function(spe,
-    model = "ppm",
+    model = "kppm",
     imageId,
     imageLs = NULL,
     marks,
@@ -100,7 +100,7 @@
 #'
 .fitSharedModelAcrossImages <- function(
     spe,
-    model = "ppm",
+    model = "mppm",
     imageId,
     imageLs = NULL,
     marks,
@@ -267,7 +267,7 @@
 #' @importFrom spatstat.model dppm
 #' @importFrom spatstat.model kppm
 fitModelAcrossImages <- function(spe,
-    model = "ppm",
+    model = "kppm",
     imageId,
     imageLs = NULL,
     marks,

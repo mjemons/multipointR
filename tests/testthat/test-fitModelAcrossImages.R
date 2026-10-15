@@ -4,6 +4,7 @@ spe <- SpatialDatasets::spe_Keren_2018()
 test_that("fitModelAcrossImages works as single models", {
     mdlLs <- fitModelAcrossImages(
         spe = spe,
+        model = "ppm",
         imageId = "imageID",
         imageLs = list("1", "2"),
         sharedModel = FALSE,
@@ -19,6 +20,7 @@ test_that("fitModelAcrossImages works as single models with interactions", {
     mdlLs <- fitModelAcrossImages(
         spe = spe,
         imageId = "imageID",
+        model = "ppm",
         imageLs = list("1", "2"),
         sharedModel = FALSE,
         marks = "cellType",
@@ -32,6 +34,7 @@ test_that("fitModelAcrossImages works as shared model with interactions", {
     mdl <- fitModelAcrossImages(
         spe = spe,
         imageId = "imageID",
+        model = "ppm",
         imageLs = list("1", "2"),
         sharedModel = TRUE,
         marks = "cellType",
@@ -46,6 +49,7 @@ test_that("fitModelAcrossImages works as shared model with random effects", {
     mdl <- fitModelAcrossImages(
         spe = spe,
         imageId = "imageID",
+        model = "ppm",
         imageLs = list("1", "2"),
         sharedModel = TRUE,
         improve.type = "none",
@@ -63,6 +67,7 @@ list of factors into plain vectors and then can fit them", {
     mdl <- fitModelAcrossImages(
         spe = spe,
         imageId = "imageID",
+        model = "ppm",
         imageLs = list("1", "2", "3"),
         sharedModel = TRUE,
         marks = "cellType",

@@ -6,7 +6,7 @@
 \usage{
 .fitSharedModelAcrossImages(
   spe,
-  model = "ppm",
+  model = "mppm",
   imageId,
   imageLs = NULL,
   marks,

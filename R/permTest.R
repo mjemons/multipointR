@@ -21,6 +21,7 @@
 #' mdl <- fitModel(
 #'    spe = speSub,
 #'    marks = "cellType",
+#'    method = "palm",
 #'    formula = as.formula(
 #'        "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
 #'    )
@@ -36,7 +37,13 @@ permTest <- function(mdl,
   #pp <- spatstat.model::data.ppm(mdl)
   pp <- speToPPP(spe = mdl$spe, marks = mdl$marks)
   #recover the response 
-  call <- stats::getCall(mdl)$Q
+  if("ppm" %in% class(mdl)){
+    call <- stats::getCall(mdl)$Q
+  }else if("kppm" %in% class(mdl)){
+    call <- stats::getCall(mdl)$X
+  }else{
+    stop("permutation test is not implemented for ", class(mdl))
+  }
   response <- as.character(formula.tools::lhs(call))
 
   #need to rewrite the coefficient to correspond to `multipointR` internals

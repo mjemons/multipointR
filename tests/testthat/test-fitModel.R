@@ -7,9 +7,10 @@ test_that("fitModel works with treshold", {
 
     mdl <- fitModel(
         spe = speSub,
+        model = "ppm",
         marks = "cellType",
         formula = as.formula("Keratin_Tumour ~ 1"),
-        interaction = "Strauss",
+        interaction = "Hardcore",
         threshold = 10
     )
     expect_equal(is(mdl), "multipointRppm")
@@ -22,6 +23,7 @@ test_that("fitModel fails with incorrect formula", {
     expect_error(fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = as.formula("Keratin_Tumour"),
         interaction = "StraussHard",
         threshold = 10
@@ -35,13 +37,14 @@ test_that("fitModel works with mixed formulas of changed
     mdl <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "kppm",
         formula = 
         as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(Endothelial))"),
-        interaction = "Fiksel",
+        interaction = "Hardcore",
         threshold = 10
     )
     expect_equal(is(mdl), "multipointRppm")
-    expect_true(verifyclass(mdl, "ppm"))
+    expect_true(verifyclass(mdl, "kppm"))
 })
 
 test_that("fitModel returns NULL as model if the covariate is absent", {
@@ -63,6 +66,7 @@ test_that("fitModel works with interactions", {
     mdl <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = 
         as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(Endothelial))"),
         interaction = "Hardcore",
@@ -76,6 +80,7 @@ test_that("fitModel works with offset", {
 
     mdl <- fitModel(
         spe = speSub,
+        model = "ppm",
         marks = "cellType",
         formula =
         as.formula("Keratin_Tumour ~ offset(log(lambda)) + distfun(Endothelial)"),
@@ -90,6 +95,7 @@ test_that("fitModel fails if interaction is not implemented", {
     expect_error(mdl <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = 
         as.formula("Keratin_Tumour ~ offset(log(lambda)) + distfun(Endothelial)"),
         interaction = "Dirichlet"
@@ -103,10 +109,10 @@ test_that("fitModel works with interaction", {
         spe = speSub,
         marks = "cellType",
         formula = as.formula("Keratin_Tumour ~ sqrt(x):distfun(Endothelial)"),
-        interaction = "StraussHard"
+        interaction = "Hardcore"
     )
     expect_equal(is(mdl), "multipointRppm")
-    expect_true(verifyclass(mdl, "ppm"))
+    expect_true(verifyclass(mdl, "kppm"))
 })
 
 test_that("fitModel works with sf polygon from `sosta`", {
@@ -127,7 +133,7 @@ test_that("fitModel works with sf polygon from `sosta`", {
         formula = as.formula("Endothelial ~ tumour_mask")
     )
     expect_equal(is(mdl), "multipointRppm")
-    expect_true(verifyclass(mdl, "ppm"))
+    expect_true(verifyclass(mdl, "kppm"))
 })
 
 test_that("fitModel works with enet lasso reg", {
@@ -136,8 +142,9 @@ test_that("fitModel works with enet lasso reg", {
     mdl <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x)"), 
-        improve.type = "enet",
+        improve.type.ppm = "enet",
         improve.args = list(alpha = 1),
         interaction = "Hardcore"
     )
@@ -151,6 +158,7 @@ test_that("fitModel works with enet lasso reg and relaxed fitting", {
     mdl <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x)"), 
         improve.type = "enet",
         improve.args = list(alpha = 1),
@@ -160,6 +168,7 @@ test_that("fitModel works with enet lasso reg and relaxed fitting", {
     mdlEnet <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x)"), 
         improve.type = "enet",
         improve.args = list(alpha = 1),
@@ -170,6 +179,7 @@ test_that("fitModel works with enet lasso reg and relaxed fitting", {
     mdlRelax <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x) + density(Endothelial)"), 
         improve.type = "enet",
         improve.args = list(alpha = 1),
@@ -188,6 +198,7 @@ test_that("fitModel works with enet lasso reg and relaxed fitting also with non 
     mdlRelax <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x) + log(x)"), 
         improve.type = "enet",
         improve.args = list(alpha = 1),
@@ -203,6 +214,7 @@ test_that("fitModel works with enet lasso reg and relaxed fitting also more than
     mdlRelax <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x) + log(x) + density(Endothelial)"), 
         improve.type = "enet",
         improve.args = list(alpha = 1),
@@ -218,6 +230,7 @@ test_that("fitModel fails if more than one element is in the selection", {
     expect_error(fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x) + log(x) + density(Endothelial)"), 
         improve.type = "enet",
         improve.args = list(alpha = 1),
@@ -245,6 +258,7 @@ test_that("fitModel works with custom lambda", {
     mdl1 <- fitModel(
         spe = speSub,
         marks = "cellType",
+        model = "ppm",
         formula = as.formula("Keratin_Tumour ~ log(lambda) + splines::bs(x)"), 
         lambda = lambda,
         improve.args = list(alpha = 1),

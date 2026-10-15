@@ -7,7 +7,7 @@
 \usage{
 fitModelAcrossImages(
   spe,
-  model = "ppm",
+  model = "kppm",
   imageId,
   imageLs = NULL,
   marks,

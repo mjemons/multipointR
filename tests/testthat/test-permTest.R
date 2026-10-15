@@ -3,6 +3,7 @@ speSub <- subset(spe, , imageID == "5")
 
 test_that("permutation test produces valid p-values", {
   mdl <- fitModel(
+    model = "ppm",
     spe = speSub,
     marks = "cellType",
     formula = as.formula(
