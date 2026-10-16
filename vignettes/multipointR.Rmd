@@ -161,55 +161,73 @@ The PPM then models this inhomogeneous intensity $\lambda(u)$ as a function of
 spatial and non-spatial covariates
 
 $$
-\lambda_{\Theta}(u) = \exp(\beta_0(u) + \Theta^TZ(u))
+\lambda_{\Theta}(u) = \exp(\beta_0 + \Theta^TZ(u))
 $$
 
-where $\beta_0(u)$ is the baseline intensity, $Z(u)$ are spatially varying 
+where $\beta_0$ is the baseline intensity, $Z(u)$ are spatially varying 
 covariate functions and $\Theta$ is the parameter vector to be estimated. 
 In particular, parameters within $\Theta$ would be relevant for making 
 inferences in order to make claims about spatial associations.
 
-## The Gibbs point process
+## The Cox point process
 
-In the Poisson point process, points can be arbitrarily close together, 
-which in a tissue of cells is not feasible. However, a constraint on cell 
-co-localization can be imposed by a Gibbs point process. 
-This class of models allows inhibitory or repulsive interactions between points
-to be modeled. In our case, we model the interaction between cells as a 
-so-called "hard core" process, whereby the resulting conditional intensity at a 
-location $u$ is given by
+In the inhomogeneous Poisson process we have to model the baseline inhomogeneity
+as fixed effects. This means we have to either "know" what drives the inhomogeneity
+or parametrise a flexible $\beta_0(u)$ for example with a bivariate spline
+surface. In such a setting we run into the possibility of overparametrising 
+our model. An alternative are Cox point processes where the underlying 
+inhomogeneity is modelled as a random effect.
+Cox processes are Poisson processes with a random intensity function
+$\Lambda(u)$. Given this underlying random intensity function point process 
+is constructed with intensity equal to $\Lambda(u)$ [@baddeley2016spatial]. 
 
-$$
-\lambda(u \mid \mathbf{x}) = \cases{
-    \phi(u) & \text{if $u$ is permissible}\\
-    0 &  \text{if $u$ is not permissible}\\
-}
-$$
-
-where $\phi(u)$ is the intensity function of an inhomogeneous Poisson process 
-(note the change in notation to before). The hardcore permission is given if the
-distance of $u$ to any other point $x_i$ is greater than the hard core diameter
-$r$. This diameter $r$ can be either provided by the user (e.g. prior 
-knowledge on the average cell size) or estimated from the 
-data [@baddeley2016spatial]. 
-
-The estimation from a dataset then becomes the following:
+The expected number of points of the Cox process is then
 
 $$
-\lambda_{\Theta}(u \mid \mathbf{x}) = \exp(\beta_0(u) + \Theta^TZ(u)) 
-\cdot h(u,r,\mathbf{x})
+\mathbb{E}[n(\mathbf{X} \cap B)] = \mathbb{E}(\mathbb{E}[n(\mathbf{X} \cap B)\mid\Lambda]) = \int_B \mathbb{E}[\Lambda(u)]\,\mathrm{d}u,
 $$
 
-where $\Theta$ are the first order terms (similar to the Poisson point process),
-whereas $h(u,r,\mathbf{x})$, the second order terms, define the hard core 
-interaction with interaction radius $r$, subject to the constraint:
+meaning that the expected number of points in a region $B$ is conditional on 
+the random intensity function. The intensity of the Cox process is then an
+inhomogeneous Poisson process conditional on the realisation of the stochastic 
+function $\Lambda(u)$ [@10.1214/13-STS441]. 
 
 $$
-h(u,r,\mathbf{x}) = \cases{
-    0 & if $\lVert u-v \rVert \leq r, v \in \mathbf{x}\setminus\{u\}$\\
-    1 & if $\lVert u-v \rVert > r, v \in \mathbf{x}\setminus\{u\}$\\
-} 
-$$ 
+\lambda(u) = \mathbb{E}[\Lambda(u)]
+$$
+
+A convenient formulation is that of a _log Gaussian Cox process_ (LGCP).
+
+$$
+\Lambda(u) = \exp(G(u)),
+$$
+where $G(u)$ is a _Gaussian random field_ in $\mathbb{R}^2$, with mean $\mu(u)$ 
+and covariance $C(u,v)$. The exponentiation keeps the intensity positive whereas
+the assumption of the GRF leads to a well defined model, meaning that the
+covariance matrix is positive definite. Furthermore, we only consider models
+that are isotropic and stationary. These are obvious simplifactions in comparison
+to highly heterogeneous tissues. 
+
+The objective function of the LGCP can then be formulated as 
+
+$$
+\begin{aligned}
+\Lambda(u) &= \underbrace{\exp(\beta_0(u)+ \mathbf{\Theta}^{\mathsf{T}}\mathbf{Z}(u))}_{\lambda_{\mathbf{\Theta}}(u)} \cdot \underbrace{\exp(G_0(u) - \sigma^2/2)}_{M(u)},
+\end{aligned}
+$$
+
+This is a nicely separable formulation with the first order terms of the 
+Cox proccess ($\lambda_{\mathbf{\Theta}}(u)$) and the random part $M(u)$ 
+of the Cox model described by the second order term $\sigma^2$ and a zero mean
+Gaussian random field $G_0(u)=G(u) - \mu(u)$ with $\mathbb{E}[M(u)] = 1$ [@10.1214/13-STS441].
+
+
+In order to estimate the mean of the GRF `spatstat` uses a two step fitting 
+procedure of @baddeley2014package. First, the Poisson process component is fit 
+$\log\lambda(u)$. After that, the Cox/cluster component $\sigma^2/2$ is 
+substracted by estimating via e.g. minimum contrast of the 
+two summary statistics or the Palm likelihood. Since the Palm likelihood
+approach was shown to be more stable, we will use it here [@BADDELEY2022100709].
 
 [@baddeley2016spatial; @baddeley2000practical]. 
 
@@ -263,7 +281,7 @@ First, we will estimate the distribution of p53+ tumour cells as a
 *homogeneous* intensity in space, i.e., we fit a model of the form 
 
 $$
-\lambda(u) = \exp(\beta_0) \cdot h(u,r,\mathbf{x})
+\mu(u) = \beta_0 - \sigma^2/2
 $$
 
 with a constant intercept $\beta_0$
@@ -275,12 +293,13 @@ m0 <- fitModel(
     spe = speSub,
     marks = "cellTypeNew",
     interaction = "Hardcore",
+    method = "palm",
     formula = as.formula("p53_Tumour ~ 1")
 )
 ```
 
 The model is very basic and has not many parameters, let's look at the
-spatial trend:
+spatial trend of the first step Poisson model:
 
 ```{r Ppm0Plot, fig.width=8, fig.height=8}
 plot(m0)
@@ -291,38 +310,6 @@ The resulting spatial trend is a flat surface.
 This is not a very sensible model since we see clear a inhomogeneous 
 distribution of points in space.
 
-Looking at the conditional intensity function we obtain an estimate of the
-intensity of the process given the point pattern.
-
-```{r Ppm0PlotCIF, fig.width=8, fig.height=8}
-plot(m0, type = "cif")
-```
-
-We note that in the vicinity of cells no other point can be placed, a
-result of the hardcore process.
-
-This leads to a conceptual question on how to parametrise the Gibbs model best 
-for biological tissue. An alternative to the hard core interaction model is the 
-Strauss interaction model that parametrises not a hard cut-off to zero but 
-rather an interaction probability $\gamma$. A middle ground is the Fiksel 
-process or a Strauss-Hardcore process that combines both a hard core effect for
-effects $r_h$ where no cells are found and a Strauss/Fiksel process where cells 
-are less likely to be found. This can either be a fixed probability $\gamma$ 
-(Strauss-Hard) or follow a double exponential decay (Fiksel). We will use a
-Fiksel process for this tutorial as it is more flexible in modelling 
-interactions [@takacs1986interaction].
-
-$$
-h(u,r_h,r_f,\mathbf{x}) = \cases{
-    0 & if $\lVert u-v \rVert \leq r_h, v \in \mathbf{x}\setminus\{u\}$\\
-    \exp(a\exp(-\kappa d)) & if $r_h < \lVert u-v \rVert \leq r_f, v \in 
-    \mathbf{x}\setminus\{u\}$\\
-    1 & if $\lVert u-v \rVert > r_f, v \in \mathbf{x}\setminus\{u\}$\\
-} 
-$$ 
-
-where $r_h$ is the hard core radius (estimated from the data) and $r_f$ is the 
-Fiksel interaction radius (user provided) [@baddeley2016spatial]. 
 
 ### Model of inhomogeneous intensity
 
@@ -332,77 +319,62 @@ bivariate spline model of $x$ and $y$ ($s(x,y)$). The model we fit is of the
 form 
 
 $$
-\lambda(u) = \exp(\beta_0(u)) \cdot Z_0(u) \cdot h(u,r_h,r_f,\mathbf{x})
+\mu(u) = \beta_0(u) - \sigma^2/2
 $$
 
-with a spatially-varying intercept $\beta_0(u)$, which we specify as an 
-power image of the intensity $Z_0(u)$ and an inhomogeneous intercept
+
+with a spatially-varying intercept $\beta_0(u)$ an inhomogeneous intercept
 parameterised as a tensor product spline.
 
 ```{r Ppm1, warnings = FALSE}
 m1 <- fitModel(
     spe = speSub,
     marks = "cellTypeNew",
-    formula = as.formula("p53_Tumour ~ log(lambda) + 
-        splines::ns(x, df = 3)*splines::ns(y, df = 3)"),
-    interaction = "Hardcore",
-    improve.type = "enet",
-    improve.args = list(alpha = 1),
-    relaxed = TRUE
+    method = "palm",
+    formula = as.formula("p53_Tumour ~ 
+        splines::ns(x, df = 2)*splines::ns(y, df = 2)"),
+    interaction = "Hardcore"
 )
 ```
 
-We can look at the influence of the parameters with a likelihood ratio test. 
-This is a bit less verbose than the individual $z$-tests for each basis 
-function that `summary(m1)` would provide.
+We can look at the influence of the parameters with a $z$-tests for the
+individual parameters
 
 ```{r Ppm1Anova}
-anova(m1, test = "LRT")
+coef(summary(m1))
 ```
 
-Given the degree to which the log-likelihood improves by adding the spline
-intensity function (i.e., the LRT), we can conclude that model of inhomogeneity
-is more suitable than the homogeneous model for this dataset. 
-
-```{r Ppm1Plot, fig.width=8, fig.height=8}
-plot(m1)
-```
-
-This is also clear from the spatial trend, highlighting that most regions have 
-a very low probability of p53+ cells.
+We can see that because we already assume an underlying random baseline most of
+the spline terms are not significantly different from zero. Therefore, we will
+not consider an additional spatially varying $\beta_0(u)$ anymore.
 
 ### Model of distance to immune cells
 
 From the literature, we know that p53+ tumour cells have immune-modulatory
 function. Our hypothesis is therefore that p53+ tumour cells will interact 
-spatially with immune cells. In order to test this, we formulate a Gibbs model 
-of distance to immune cells while accounting for an underlying 
-inhomogeneous distribution of p53+ tumour cells. 
+spatially with immune cells. In order to test this, we formulate a Cox model 
+of distance to immune cells.
 
 The model is then:
 
 $$
-\lambda(u) = \exp(\beta_0 + \beta_{\text{dist}}Z_{\text{dist}}(u)) \cdot Z_0(u)
-    \cdot h(u,r_h,r_f,\mathbf{x})
+\mu(u) = \beta_0 + \beta_{dist}\mathbf{Z}_{dist}(u) - \sigma^2/2
 $$
 
 ```{r Ppm2}
 m2 <- fitModel(
     spe = speSub,
     marks = "cellTypeNew",
-    formula = as.formula("p53_Tumour ~ log(lambda) + 
-        splines::ns(x, df = 3)*splines::ns(y, df = 3) + 
+    formula = as.formula("p53_Tumour ~ 
         spatstat.geom::distfun(Immune)"),
-    interaction = "Hardcore",
-    improve.type = "enet",
-    improve.args = list(alpha = 1),
-    relaxed = TRUE
+    method = "palm",
+    interaction = "Hardcore"
 )
 ```
 
 We can again look at the contribution of the model parameters with a LRT
 ```{r Ppm2Anova}
-anova(m1, m2, test = "LRT")
+coef(summary(m2))
 ```
 
 We see that the model including the distance to immune cells does not lead to 
@@ -412,30 +384,42 @@ an improvement in model fit for this specific image.
 plot(m2)
 ```
 
-Also the spatial trend looks pretty similar as in the model above.  
+An important part when fitting statistical models for inference is to check the 
+model diagnostics to query potential deviations from the modeling assumptions
 
-An important step in fitting complex spatial models is to check goodness-of-fit
+For `kppm` objects the theory and software to assess goodness-of-fit is not as
+developed as for `ppm` objects. We will consider two options:
 
-```{r Ppm2diagnose, fig.width=8, fig.height=8}
-diagnose.ppm(m2)
+- Summary statistics with bootstrapped confidence bands
+- Q-Q plots of the first `ppm` fit and compare this to a simulated reference 
+distribution of the `kppm` object
+
+The assessment of the summary statistics with confidence bands is a good second
+order check.
+
+```{r Summarybootstrap}
+summaryQc <- envelope(m2, pcfinhom, global = TRUE)
+plot(summaryQc)
 ```
 
-We note that there is still some unexplained variance of the residuals along 
-both the $x$ and $y$ coordinates but overlaying both in a 2D density the 
-deviations are only minor and centered around zero.
+We notice some devitations from the  at low radii $r$ of the model envelopes and
+the observed pair-correlation function indicating some unexplained variance
 
-We can also look at the residuals of the model which are in this case not 
-completely normally distributed, indicating some residual unexplained variance.
-For computational reasons we will not run this 
-
-```{r Ppm2Qq, fig.width=8, fig.height=8, message = FALSE, results = "hide", eval = FALSE}
-p <- qqplot.ppm(m2, nsim = 50)
+```{r}
+set.seed(1234)
+#extract the first Poisson fit
+poM2 <- as.ppm(m2)
+#simulate confidence bands under `kppm` model
+nsim <- 99
+sims <- simulate(m2, nsim = nsim)   
+#plot the QQ
+qq <- qqplot.ppm(poM2,
+                 nsim = nsim,
+                 expr = sims,          
+                 type = "pearson")
 ```
 
-Looking at a simulated Q-Q plot of the residuals, we see slightly heavier tails
-than expected. 
-
-Given the complexity of the dataset, the model fit is acceptable. 
+Under the quantiles of the simulated `kppm` model the difference is less clear
 
 ### Model of segmented objects
 
@@ -479,21 +463,18 @@ compared to outside.
 m3 <- fitModel(
     spe = sfeSub,
     marks = "cellTypeNew",
-    formula = as.formula("p53_Tumour ~ log(lambda) + 
-        splines::ns(x, df = 3)*splines::ns(y, df = 3) + 
-        tumour_mask + 
-        spatstat.geom::distfun(Immune)"),
-    interaction = "Hardcore",
-    improve.type = "enet",
-    improve.args = list(alpha = 1),
-    relaxed = TRUE
+    formula = as.formula("p53_Tumour ~
+        tumour_mask"),
+    method = "palm",
+    standardize = FALSE,
+    interaction = "Hardcore"
 )
 ```
 
-We will check again for the importance of this covariate with a LRT
+We can again assess the importance of the variables with a $z$-test
 
 ```{r Ppm3Anova}
-anova(m2, m3, test = "LRT")
+coef(summary(m3))
 ```
 
 We can interpret from this test that the covariate `tumour_mask` is important
@@ -508,17 +489,55 @@ plot(m3) + geom_sf(
 )
 ```
 
-The model looks very similar to the spatial trend above in the model 
-with just the distance to immune cells defined. 
-We can again look at the improvement of the model diagnostics
+The model is just a binary surface within and outside of the tumour
 
-```{r Ppm3Plotdiagnose, fig.width=8, fig.height=8}
-diagnose.ppm(m3)
+```{r}
+summaryQc <- envelope(m3, pcfinhom, global = TRUE)
+plot(summaryQc)
 ```
 
-The model diagnostics look very similar to the model above. 
-For computational reasons, we did not include the Q-Q plot here, but the result
-is also similar to the Q-Q plot above.
+This model fits the data much better than model `m2`. We can combine models
+`m2` and `m3` and create a model that incorporates both the tumour mask plus
+the distance to the immune cells. 
+
+```{r Ppm4}
+m4 <- fitModel(
+    spe = sfeSub,
+    marks = "cellTypeNew",
+    formula = as.formula("p53_Tumour ~
+        tumour_mask +
+        spatstat.geom::distfun(Immune)"),
+    standardize = FALSE,
+    method = "palm",
+    penalised=TRUE,
+    interaction = "Hardcore"
+)
+```
+
+```{r}
+coef(summary(m4))
+```
+
+In this model we notice again no significant effect of distance to immune cells
+after accounting for underlying randomness and the binary tumour mask. 
+
+```{r Ppm4Plot, fig.width=8, fig.height=8}
+plot(m4) + geom_sf(
+    data = segmentedTumour, inherit.aes = FALSE,
+    fill = NA, color = "darkred", linewidth = 0.6
+)
+```
+
+Now we have a surface of zero intensity outside of the tumour and within the 
+tumour a varrying surface.
+
+```{r}
+summaryQc <- envelope(m4, pcfinhom, global = TRUE)
+plot(summaryQc)
+```
+
+The goodness of fit is improved in comparison to model `m3` but still we notice
+some deviations at low radii. 
 
 ## Multi-image inference
 
@@ -533,14 +552,13 @@ $\beta_{\text{dist}}$
 mdlLs <- fitModelAcrossImages(
     spe = spe,
     imageId = "imageID",
+    imageLs = seq(1,29),
     marks = "cellTypeNew",
-    formula = as.formula("p53_Tumour ~ log(lambda) + 
-        splines::ns(x, df = 3)*splines::ns(y, df = 3) + 
+    formula = as.formula("p53_Tumour ~
         spatstat.geom::distfun(Immune)"),
+    improve.type = "wclik1",
+    method = "palm",
     interaction = "Hardcore",
-    improve.type = "enet",
-    improve.args = list(alpha = 1),
-    relaxed = TRUE,
     threshold = 10
 )
 ```
@@ -581,23 +599,16 @@ We see a difference between the tumour types: cold tumours show no
 effect and a generally positive effect of immune cell distance on
 p53+ cells in compartmentalised and mixed tumours despite not being significant. 
 
-There are two of these models that are clear outliers, 
-let's look at them in more detail
+There is a model that is a clear outliers, 
+let's look at it in more detail
 
 ```{r model1213Plot, fig.width=8, fig.height=8}
-# model 12
-plot(mdlLs[[12]])
-diagnose.ppm(mdlLs[[12]])
-# model 39
-plot(mdlLs[[39]])
-diagnose.ppm(mdlLs[[39]])
+# model 13
+plot(mdlLs[[13]])
 ```
 
-The first model seems reasonable in terms of diagnostics, 
-however it  contains many cells and thus shows a stronger effect than the 
-other images. The second image shows larger variation in the residuals at both 
-higher $x$ and $y$ values, suggesting that the model is misspecified for 
-this image.
+The second model is very sparse in terms of the response point distribution. This
+could explain some of the more extreme values. 
 
 ### Second-stage model of coefficients
 
@@ -626,60 +637,14 @@ mdl <- lm(Estimate ~ tumour_type,
 print(summary(mdl))
 ```
 
-In agreement with the findings above, there are positive but non-significant
+In agreement with the findings above, there are positive but only weakly significant
 effects for both compartmentalised and mixed tumours in comparison to cold
 tumours. 
 
-### Fitting a shared model across images
+# AI statement
 
-We can also fit a shared model across all images. In that case, 
-we parametrise an interaction effect between the tumour type and the distance 
-to immune cells. Furthermore, we specify a random intercept per sample ID.
-
-In comparison to the `ppm` models from `spatstat.model` `mppm` offers less 
-flexibility in terms of model parametrisation. If you need more flexibility, 
-we recommend you to consider the previous section.
-
-For instance, `gam` fits are not available in `mppm`, 
-therefore we account for inhomogeneity with a kernel density estimation of 
-the point distribution. As offsets are also not supported by `mppm` 
-we can add the KDE as a parameter to our estimation via a power law.
-
-```{r mPpmShared}
-mdl <- fitModelAcrossImages(
-    spe = spe,
-    imageId = "imageID",
-    imageLs = seq(15, 18),
-    marks = "cellTypeNew",
-    interaction = "Fiksel",
-    formula = as.formula("p53_Tumour ~  log(lambda) +
-        splines::bs(x, df = 3):splines::bs(y, df = 3) +
-        tumour_type:spatstat.geom::distfun(Immune) + 
-        (1|DONOR_NO)"),
-    improve.type = "enet",
-    improve.args = list(alpha = 1),
-    sharedModel = TRUE,
-    threshold = 10
-)
-mdl |> summary()
-```
-
-We notice again a significant effect of the interaction of compartmentalised
-tumour with distance to immune cells as well as the mixed tumour types. 
-The effect sizes are in both cases very subtle. 
-
-In order to assess the model fit we can calculate the sum of the residuals per 
-image and plot them as a function of the condition. 
-In expectation these should be zero.
-
-```{r mPpmSharedResiduals}
-res <- residuals(mdl, type = "raw")
-resInt <- sapply(res, integral.msr)
-print(resInt)
-```
-
-These residuals are not perfectly centered around zero for some of the models,
-implying that the model fit from `mppm` is not ideal in this scenario. 
+AI was used to revise the content in this vignette including the formulae and 
+derivations
 
 # Session Information
 

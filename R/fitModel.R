@@ -39,6 +39,8 @@
 #' to obvious double dipping. The inference then becomes an LRT with and without
 #' the variable indicated in `selectionExclude`.
 #' @param ctrlKppm `list`; a named list to control the `kppm` fit
+#' @param covmodel `list`; a named list with the covariance options for the
+#' LGCP model
 #' @param ... other parameters passed on to `ppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `dppm` model in `spatstat.model`
@@ -77,6 +79,7 @@ fitModel <- function(
     standardize = TRUE,
     selectionExclude = NULL,
     ctrlKppm=list(),
+    covmodel=list(model="matern", nu=1.5),
     ...
 ) {
     # some type assertions
@@ -234,6 +237,7 @@ fitModel <- function(
                 method = method.kppm,
                 ctrl = ctrlKppm,
                 penalised = penalised,
+                covmodel = covmodel,
                 ...
             )
         )
