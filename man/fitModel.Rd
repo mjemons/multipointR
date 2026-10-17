@@ -22,6 +22,7 @@ fitModel(
   standardize = TRUE,
   selectionExclude = NULL,
   ctrlKppm = list(),
+  covmodel = list(model = "matern", nu = 1.5),
   ...
 )
 }
@@ -77,6 +78,9 @@ to obvious double dipping. The inference then becomes an LRT with and without
 the variable indicated in \code{selectionExclude}.}
 
 \item{ctrlKppm}{\code{list}; a named list to control the \code{kppm} fit}
+
+\item{covmodel}{\code{list}; a named list with the covariance options for the
+LGCP model}
 
 \item{...}{other parameters passed on to \code{ppm} model from \code{spatstat.model}}
 }
