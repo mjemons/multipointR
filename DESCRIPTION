@@ -30,7 +30,6 @@ Imports:
     spatstat.geom,
     spatstat.model,
     spatstat.explore,
-    spatstat.random,
     formula.tools, 
     mgcv,
     dplyr,
