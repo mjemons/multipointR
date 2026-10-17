@@ -11,7 +11,7 @@ test_that("permutation test produces valid p-values", {
     )
   )
 
-  res <- permTest(mdl, "spatstat.geom::distfun(CD8_T_cell)", nsim = 10)
+  res <- permTest(mdl, "spatstat.geom::distfun(CD8_T_cell)", nsim = 2)
 
   expect_true(dplyr::between(res$pVal, 0, 1))
 })

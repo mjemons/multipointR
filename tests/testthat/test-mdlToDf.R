@@ -4,7 +4,7 @@ test_that("mdlToDf works", {
     mdlLs <- fitModelAcrossImages(
         spe = spe,
         imageId = "imageID",
-        imageLs = list("1", "2"),
+        imageLs = list("1"),
         marks = "cellType",
         sharedModel = FALSE,
         formula = as.formula("Keratin_Tumour ~

@@ -39,5 +39,5 @@ mdl <- fitModel(
    )
 )
 
-permTest(mdl, coefficient = "spatstat.geom::distfun(CD8_T_cell)", nsim = 10)
+permTest(mdl, coefficient = "spatstat.geom::distfun(CD8_T_cell)", nsim = 2)
 }
