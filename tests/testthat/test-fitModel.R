@@ -41,7 +41,8 @@ test_that("fitModel works with mixed formulas of changed
         formula = 
         as.formula("Keratin_Tumour ~ sqrt(x) + log(density.ppp(Endothelial))"),
         interaction = "Hardcore",
-        threshold = 10
+        threshold = 10,
+        method.kppm = "mincon" #to reduce compute time
     )
     expect_equal(is(mdl), "multipointRppm")
     expect_true(verifyclass(mdl, "kppm"))
@@ -109,7 +110,8 @@ test_that("fitModel works with interaction", {
         spe = speSub,
         marks = "cellType",
         formula = as.formula("Keratin_Tumour ~ sqrt(x):distfun(Endothelial)"),
-        interaction = "Hardcore"
+        interaction = "Hardcore",
+        method.kppm = "mincon" #to reduce compute time
     )
     expect_equal(is(mdl), "multipointRppm")
     expect_true(verifyclass(mdl, "kppm"))
@@ -130,7 +132,8 @@ test_that("fitModel works with sf polygon from `sosta`", {
     mdl <- fitModel(
         spe = sfeSub,
         marks = "cellType",
-        formula = as.formula("Endothelial ~ tumour_mask")
+        formula = as.formula("Endothelial ~ tumour_mask"),
+        method.kppm = "mincon" #to reduce compute time
     )
     expect_equal(is(mdl), "multipointRppm")
     expect_true(verifyclass(mdl, "kppm"))

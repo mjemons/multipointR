@@ -260,7 +260,8 @@
 #'     formula = as.formula(
 #'         "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
 #'     ),
-#'     threshold = 10
+#'     threshold = 10,
+#'     method.kppm = "mincon" #to reduce compute time
 #' )
 #'
 #' @importFrom mgcv s
