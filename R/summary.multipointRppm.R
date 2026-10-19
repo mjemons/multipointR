@@ -40,37 +40,41 @@ summary.multipointRppm <- function(
   ...
 ){
   class(object) <- setdiff(class(object), "multipointRppm")
-  if(!fast){
-    result <- summary(object, quick=quick, ...)
-  }else if(fast && isFALSE(quick)){
-    result <- summary(object, quick=TRUE, ...)
+
+  # only use the fast path for kppm objects
+  if (!(inherits(object, "kppm"))) {
+      return(summary(object, quick = quick, ...))
+  }
+  
+  if(fast && isFALSE(quick)){
     #written by claude Opus 5.5 and adapted code from spatstat.model::summary.kppm
     #licensed under GPL-3 to Adrian Baddeley, Rolf Turner and Ege Rubak
-    if(inherits(object, "kppm")){
-      theta <- stats::coef(object)
-      if (length(theta) > 0) {
-        vc <- stats::vcov(object, fast=fast, eps.rmax = eps.rmax)
-      }
-      if (!is.null(vc)) {
-                  se <- if (is.matrix(vc)) 
-                    sqrt(diag(vc))
-                  else if (length(vc) == 1) 
-                    sqrt(vc)
-                  else NULL
-              }
-      if (!is.null(se)) {
-                  two <- stats::qnorm(0.975)
-                  lo <- theta - two * se
-                  hi <- theta + two * se
-                  zval <- theta/se
-                  pval <- 2 * stats::pnorm(abs(zval), lower.tail = FALSE)
-                  psig <- cut(pval, c(0, 0.001, 0.01, 0.05, 1), 
-                    labels = c("***", "**", "*", "  "), include.lowest = TRUE)
-                  result$coefs.SE.CI <- data.frame(Estimate = theta, 
-                    S.E. = se, CI95.lo = lo, CI95.hi = hi, Ztest = psig, 
-                    Zval = zval)
-                  }
-      }
+    result <- summary(object, quick=TRUE, ...)
+    theta <- stats::coef(object)
+    if (length(theta) > 0) {
+      vc <- stats::vcov(object, fast=fast, eps.rmax = eps.rmax)
+    }
+    if (!is.null(vc)) {
+                se <- if (is.matrix(vc)) 
+                  sqrt(diag(vc))
+                else if (length(vc) == 1) 
+                  sqrt(vc)
+                else NULL
+            }
+    if (!is.null(se)) {
+                two <- stats::qnorm(0.975)
+                lo <- theta - two * se
+                hi <- theta + two * se
+                zval <- theta/se
+                pval <- 2 * stats::pnorm(abs(zval), lower.tail = FALSE)
+                psig <- cut(pval, c(0, 0.001, 0.01, 0.05, 1), 
+                  labels = c("***", "**", "*", "  "), include.lowest = TRUE)
+                result$coefs.SE.CI <- data.frame(Estimate = theta, 
+                  S.E. = se, CI95.lo = lo, CI95.hi = hi, Ztest = psig, 
+                  Zval = zval)
+                }
+  }else{
+    result <- summary(object, quick=quick, ...)
   }
   return(result)
 }
