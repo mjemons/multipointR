@@ -10,10 +10,12 @@
 \item{object}{\code{ppm}; a model fit with \code{spatstat.model::ppm}
 or the wrapper \code{multipointR::fitModel}}
 
-\item{quick}{\code{logical}; whether or not to use the default \code{summary.ppm}/
+\item{quick}{\code{logical} whether or not to calculate standard errors}
+
+\item{fast}{\code{logical}; whether or not to use the default \code{summary.ppm}/
 \code{summary.kppm} functions or make use of the sparse matrix calculation of
 \code{vcov.kppm}. Has no effect for non \code{kppm} objects and defaults to the
-normal \code{summary} default with quick = TRUE}
+normal \code{summary}}
 
 \item{eps.rmax}{\code{numerical} from \code{vcov.kppm}, check directly}
 

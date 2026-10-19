@@ -2,10 +2,11 @@
 #'
 #' @param object `ppm`; a model fit with `spatstat.model::ppm`
 #' or the wrapper `multipointR::fitModel`
-#' @param quick `logical`; whether or not to use the default `summary.ppm`/ 
+#' @param quick `logical` whether or not to calculate standard errors
+#' @param fast `logical`; whether or not to use the default `summary.ppm`/ 
 #' `summary.kppm` functions or make use of the sparse matrix calculation of 
 #' `vcov.kppm`. Has no effect for non `kppm` objects and defaults to the 
-#' normal `summary` default with quick = TRUE
+#' normal `summary`
 #' @param eps.rmax `numerical` from `vcov.kppm`, check directly
 #' @param ... other parameters passed on to `summary`
 #'
@@ -44,12 +45,11 @@ summary.multipointRppm <- function(
   }else if(fast && isFALSE(quick)){
     result <- summary(object, quick=TRUE, ...)
     #written by claude Opus 5.5 and adapted code from spatstat.model::summary.kppm
-    #licensed under GPL-3 to Abdollah Jalilian and Rasmus Waagepetersen, ported by
-    #Adrian Baddeley
+    #licensed under GPL-3 to Adrian Baddeley, Rolf Turner and Ege Rubak
     if(inherits(object, "kppm")){
-      theta <- coef(object)
+      theta <- stats::coef(object)
       if (length(theta) > 0) {
-        vc <- vcov(object, fast=fast, eps.rmax = eps.rmax)
+        vc <- stats::vcov(object, fast=fast, eps.rmax = eps.rmax)
       }
       if (!is.null(vc)) {
                   se <- if (is.matrix(vc)) 
@@ -59,11 +59,11 @@ summary.multipointRppm <- function(
                   else NULL
               }
       if (!is.null(se)) {
-                  two <- qnorm(0.975)
+                  two <- stats::qnorm(0.975)
                   lo <- theta - two * se
                   hi <- theta + two * se
                   zval <- theta/se
-                  pval <- 2 * pnorm(abs(zval), lower.tail = FALSE)
+                  pval <- 2 * stats::pnorm(abs(zval), lower.tail = FALSE)
                   psig <- cut(pval, c(0, 0.001, 0.01, 0.05, 1), 
                     labels = c("***", "**", "*", "  "), include.lowest = TRUE)
                   result$coefs.SE.CI <- data.frame(Estimate = theta, 
