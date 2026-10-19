@@ -311,7 +311,7 @@ fitModel <- function(
 }
 
 
-#' Plot mulitpointR `ppm` objects
+#' Plot multipointR `ppm` objects
 #'
 #' @param x `ppm`; a model fit with `spatstat.model::ppm`
 #' or the wrapper `multipointR::fitModel`

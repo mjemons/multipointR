@@ -5,6 +5,11 @@
 #' image level to add to the model dataframe
 #' @param fine `logical` Logical flag passed to `summary.ppm` controlling
 #' the coarse or finer estimate of the covariance matrix
+#' @param fast `logical` Logical flag passed to `summary.multipointRppm` 
+#' controlling whether tapering (using sparse matrices from Matrix) 
+#' should be used to speed up calculations.
+#' Warning: This is expected to underestimate the true asymptotic 
+#' variances/covariances.
 #'
 #' @returns DataFrame of the model coefficients
 #'
@@ -37,13 +42,14 @@
 #' @importFrom dplyr bind_rows
 mdlToDf <- function(mdlLs,
     imageCovariates = c("imageID"),
-    fine = FALSE) {
+    fine=FALSE,
+    fast=TRUE) {
     dfTotal <- data.frame()
     dfTotal <- lapply(mdlLs, function(mdl) {
         if (is.null(mdl)) {
             return(NULL)
         } else {
-            dfCoef <- try(stats::coef(summary(mdl, fine=fine)))
+            dfCoef <- stats::coef(summary(mdl, fine=fine,fast=fast))
             dfCoef$covariate <- rownames(dfCoef)
             imageCovariateDf <- SummarizedExperiment::colData(mdl$spe) |>
                 subset(, colnames(SummarizedExperiment::colData(mdl$spe)) 

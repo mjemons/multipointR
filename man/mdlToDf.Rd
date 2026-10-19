@@ -4,7 +4,7 @@
 \alias{mdlToDf}
 \title{Convert the list of spatial models to a dataframe}
 \usage{
-mdlToDf(mdlLs, imageCovariates = c("imageID"), fine = FALSE)
+mdlToDf(mdlLs, imageCovariates = c("imageID"), fine = FALSE, fast = TRUE)
 }
 \arguments{
 \item{mdlLs}{\code{list}; A list of all the models fit with e.g. \code{ppm}}
@@ -14,6 +14,12 @@ image level to add to the model dataframe}
 
 \item{fine}{\code{logical} Logical flag passed to \code{summary.ppm} controlling
 the coarse or finer estimate of the covariance matrix}
+
+\item{fast}{\code{logical} Logical flag passed to \code{summary.multipointRppm}
+controlling whether tapering (using sparse matrices from Matrix)
+should be used to speed up calculations.
+Warning: This is expected to underestimate the true asymptotic
+variances/covariances.}
 }
 \value{
 DataFrame of the model coefficients

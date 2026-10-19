@@ -2,7 +2,7 @@
 % Please edit documentation in R/fitModel.R
 \name{plot.multipointRppm}
 \alias{plot.multipointRppm}
-\title{Plot mulitpointR \code{ppm} objects}
+\title{Plot multipointR \code{ppm} objects}
 \usage{
 \method{plot}{multipointRppm}(x, type = "trend", ...)
 }
@@ -18,7 +18,7 @@ or the wrapper \code{multipointR::fitModel}}
 a \code{ggplot2} object of the model trend/intensity surfance
 }
 \description{
-Plot mulitpointR \code{ppm} objects
+Plot multipointR \code{ppm} objects
 }
 \examples{
 spe <- SpatialDatasets::spe_Keren_2018()
