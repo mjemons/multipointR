@@ -37,3 +37,20 @@ test_that("summary.multipointRppm doesn't change anything if not kppm", {
     ret2 <- spatstat.model::summary.ppm(mdl)
     expect_true(identical(ret1, ret2))
 })
+
+test_that("summary.multipointRppm doesn't change anything if not kppm", {
+    speSub <- subset(spe, , imageID == "5")
+
+    mdl <- fitModel(
+        spe = speSub,
+        model = "kppm",
+        marks = "cellType",
+        formula = as.formula("Keratin_Tumour ~ 1"),
+        interaction = "Hardcore",
+        threshold = 10
+    )
+    expect_equal(is(mdl), "multipointRppm")
+    ret1 <- summary(mdl, fast = FALSE)
+    ret2 <- spatstat.model::summary.kppm(mdl)
+    expect_true(identical(ret1, ret2))
+})
