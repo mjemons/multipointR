@@ -50,6 +50,17 @@
         }
         pp <- spatstat.geom::as.ppp(spatstat.geom::superimpose(pp, W = window))
     }
+    #if there are any negative values, clip them to zero, because else
+    #a lot of computations will fail. Raises a warning
+    if(!all(pp$window$xrange >= 0) || !all(pp$window$yrange >= 0)){
+        warning("Some point have negative coordiantes. As this leads to 
+        errors in the computations, they are clipped to zero")
+        bb <- spatstat.geom::Frame(pp$window)
+        clip <- spatstat.geom::owin(xrange = c(max(0, bb$xrange[1]), bb$xrange[2]),
+            yrange = c(max(0, bb$yrange[1]), bb$yrange[2]))
+        window <- spatstat.geom::intersect.owin(pp$window, clip)
+        pp <- spatstat.geom::as.ppp(spatstat.geom::superimpose(pp, W = window))
+    }
     stopifnot(
         "window x-range has a negative edge" = all(pp$window$xrange >= 0),
         "window y-range has a negative edge" = all(pp$window$yrange >= 0)

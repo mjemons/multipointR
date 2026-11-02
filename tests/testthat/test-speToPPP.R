@@ -34,3 +34,13 @@ test_that("speToPP returns a ppp object with a custom window", {
 
     expect_true(is(pp, "ppp"))
 })
+
+test_that("speToPP works also with negative window def by clipping", {
+    spe <- SpatialDatasets::spe_Keren_2018()
+    speSub <- subset(spe, , imageID == "6")
+    window <- as.owin(c(-1, 1, -1, 1))
+    pp <- speToPPP(speSub, mark = "cellType", window = window)
+    
+    expect_true(is(pp, "ppp"))
+    expect_true(spatstat.geom::area.owin(window) > spatstat.geom::area.owin(pp$window))
+})
