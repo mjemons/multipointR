@@ -1,3 +1,8 @@
+# multipointR 0.99.10
+* clip window to zero if the window extends into negative coordinates. This
+can happen if points are close to zero or coordinates are standardised to (0,1)
+and `spatstat.geom::ripras` pads too much around it. 
+
 # multipointR 0.99.9
 * new default behaviour for window set in `speToPPP`. Before, this was a
 rectanglular window given the min and max of the x,y coordiantes of the points.
