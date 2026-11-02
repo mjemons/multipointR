@@ -18,6 +18,7 @@
   lambda = NULL,
   ncores = 1,
   verbose = TRUE,
+  window,
   ...
 )
 }
@@ -58,6 +59,12 @@ intensity via diggle correction}
 \item{ncores}{\code{numeric}; the number of cores to used for parallel processing}
 
 \item{verbose}{\code{logical}; whether to print informations on the fitting}
+
+\item{window}{\code{owin}; An observation window of the point pattern of class.
+The default is to estimate the window as a convex hull around the available
+points as estimated by the function \code{spatstat.geom::ripras}. If users
+provide instead \code{window = NULL} a rectanglular window surrounding min and max
+is estimated instead. A custom window can be supplied too.}
 
 \item{...}{other parameters passed on to \code{mppm} model from \code{spatstat.model}}
 }

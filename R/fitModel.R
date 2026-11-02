@@ -41,6 +41,11 @@
 #' @param ctrlKppm `list`; a named list to control the `kppm` fit
 #' @param covmodel `list`; a named list with the covariance options for the
 #' LGCP model
+#' @param window `owin`; An observation window of the point pattern of class. 
+#' The default is to estimate the window as a convex hull around the available
+#' points as estimated by the function `spatstat.geom::ripras`. If users
+#' provide instead `window = NULL` a rectanglular window surrounding min and max
+#' is estimated instead. A custom window can be supplied too. 
 #' @param ... other parameters passed on to `ppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `dppm` model in `spatstat.model`
@@ -77,10 +82,11 @@ fitModel <- function(
     method.kppm = "palm",
     relaxed = FALSE,
     penalised = TRUE,
-    standardize = TRUE,
+    standardize = FALSE,
     selectionExclude = NULL,
     ctrlKppm=list(),
     covmodel=list(model="exponential"),
+    window = "ripras",
     ...
 ) {
     # some type assertions
@@ -155,7 +161,8 @@ fitModel <- function(
             formula = fullFormula,
             marks = marks,
             lambda = lambda,
-            threshold = threshold
+            threshold = threshold,
+            window = window
         )
         fullFormula <- outFull[["formula"]]
         fullData <- outFull[["data"]]
@@ -170,7 +177,8 @@ fitModel <- function(
         formula = formula,
         marks = marks,
         lambda = lambda,
-        threshold = threshold
+        threshold = threshold,
+        window = window
     )
 
     # if the output of the deparsing is NULL, return a NULL model

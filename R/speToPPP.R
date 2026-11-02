@@ -8,12 +8,16 @@
 #' @param marks `character`; the column with the labels e.g. cell types
 #' @param continuous `logical`; indicating whether the marks are continuous
 #' defaults to FALSE
-#' @param window `owin`; An observation window of the point pattern of class.
+#' @param window `owin`; An observation window of the point pattern of class. 
+#' The default is to estimate the window as a convex hull around the available
+#' points as estimated by the function `spatstat.geom::ripras`. If users
+#' provide instead `window = NULL` a rectanglular window surrounding min and max
+#' is estimated instead. A custom window can be supplied too. 
 #' @return `ppp`; object for use with `spatstat` functions
 #'
 #' @importFrom SummarizedExperiment colData
 #' @importFrom methods is
-.dfToppp <- function(df, marks = NULL, continuous = FALSE, window = NULL) {
+.dfToppp <- function(df, marks = NULL, continuous = FALSE, window = "ripras") {
     # type checking
     stopifnot(is(df, "data.frame"))
     # this definition of the window is quite conservative
@@ -30,10 +34,6 @@
             )
         )
     )
-    stopifnot(
-        "window x-range has a negative edge" = all(pp$window$xrange >= 0),
-        "window y-range has a negative edge" = all(pp$window$yrange >= 0)
-    )
     # set the marks
     if (!continuous) {
         spatstat.geom::marks(pp) <- factor(df[[marks]])
@@ -45,9 +45,15 @@
     }
     # if window exist, set is as new window and potentially exclude some points
     if (!is.null(window)) {
+        if (is.character(window) && identical(window, "ripras")) {
+          window <- spatstat.geom::ripras(pp) 
+        }
         pp <- spatstat.geom::as.ppp(spatstat.geom::superimpose(pp, W = window))
     }
-
+    stopifnot(
+        "window x-range has a negative edge" = all(pp$window$xrange >= 0),
+        "window y-range has a negative edge" = all(pp$window$yrange >= 0)
+    )
     return(pp)
 }
 
@@ -75,7 +81,11 @@
 #' @param marks `character`; the column with the labels e.g. cell types
 #' @param continuous `logical`; indicating whether the marks are continuous
 #' defaults to FALSE
-#' @param window `owin`; An observation window of the point pattern of class.
+#' @param window `owin`; An observation window of the point pattern of class. 
+#' The default is to estimate the window as a convex hull around the available
+#' points as estimated by the function `spatstat.geom::ripras`. If users
+#' provide instead `window = NULL` a rectanglular window surrounding min and max
+#' is estimated instead. A custom window can be supplied too. 
 #'
 #' @return A ppp object for use with any `spatstat` package
 #' @export
@@ -85,7 +95,7 @@
 #' speSub <- subset(spe, , imageID == "6")
 #' pp <- speToPPP(speSub, mark = "cellType")
 #'
-speToPPP <- function(spe, marks, continuous = FALSE, window = NULL) {
+speToPPP <- function(spe, marks, continuous = FALSE, window = "ripras") {
     df <- .speToDf(spe)
     pp <- .dfToppp(df, continuous = continuous, window = window, marks = marks)
 }

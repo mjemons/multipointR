@@ -4,7 +4,7 @@
 \alias{deparseFormula}
 \title{deparse the Formula for spatstat and extract the relevant data}
 \usage{
-deparseFormula(spe, formula, response, marks, lambda, threshold)
+deparseFormula(spe, formula, response, marks, lambda, threshold, window)
 }
 \arguments{
 \item{spe}{\code{SpatialExperiment}; object subset to a single image}
@@ -23,6 +23,8 @@ intensity via diggle correction}
 
 \item{threshold}{\code{numeric}; a threshold to apply on the minimum number of
 points a point pattern needs to have to fit a \code{ppm} model to it.}
+
+\item{window}{\code{owin}; An observation window of the point pattern of class.}
 }
 \value{
 named \code{list} with both the updated formula and the data for fitting
@@ -46,7 +48,8 @@ out <- deparseFormula(
     formula = formula,
     marks = "cellType",
     lambda = NULL,
-    threshold = 10
+    threshold = 10,
+    window = NULL
 )
 
 }

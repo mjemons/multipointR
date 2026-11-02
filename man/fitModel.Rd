@@ -19,10 +19,11 @@ fitModel(
   method.kppm = "palm",
   relaxed = FALSE,
   penalised = TRUE,
-  standardize = TRUE,
+  standardize = FALSE,
   selectionExclude = NULL,
   ctrlKppm = list(),
   covmodel = list(model = "exponential"),
+  window = "ripras",
   ...
 )
 }
@@ -81,6 +82,12 @@ the variable indicated in \code{selectionExclude}.}
 
 \item{covmodel}{\code{list}; a named list with the covariance options for the
 LGCP model}
+
+\item{window}{\code{owin}; An observation window of the point pattern of class.
+The default is to estimate the window as a convex hull around the available
+points as estimated by the function \code{spatstat.geom::ripras}. If users
+provide instead \code{window = NULL} a rectanglular window surrounding min and max
+is estimated instead. A custom window can be supplied too.}
 
 \item{...}{other parameters passed on to \code{ppm} model from \code{spatstat.model}}
 }

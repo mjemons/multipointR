@@ -32,7 +32,8 @@
 #'     formula = formula,
 #'     marks = "cellType",
 #'     lambda = NULL,
-#'     threshold = 10
+#'     threshold = 10,
+#'     window = NULL
 #' )
 #'
 #' interactionModel <- defineInteractionModel(

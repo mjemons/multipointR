@@ -1,3 +1,13 @@
+# multipointR 0.99.9
+* new default behaviour for window set in `speToPPP`. Before, this was a
+rectanglular window given the min and max of the x,y coordiantes of the points.
+From now on, the window is estimated by default as the convex hull surrounding 
+all points with the function `spatstat.geom::ripras`. This makes the default
+more sensible for e.g. TMAs. 
+* default is to not standardise the x,y coordiantes to (0,1) anymore as this can
+lead to negative edges with the `ripras` functionality and might also be
+counter-intuitive to do this by default. 
+
 # multipointR 0.99.8
 * wrote a new function to perform fast approximations of the covariance matrix 
 of a lgcp model. The functionality was present already in `vcov.kppm` but could

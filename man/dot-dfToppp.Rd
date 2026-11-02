@@ -4,7 +4,7 @@
 \alias{.dfToppp}
 \title{Convert SpatialExperiment object to ppp object}
 \usage{
-.dfToppp(df, marks = NULL, continuous = FALSE, window = NULL)
+.dfToppp(df, marks = NULL, continuous = FALSE, window = "ripras")
 }
 \arguments{
 \item{df}{\code{DataFrame}; x and y coordinates from the corresponding
@@ -15,7 +15,11 @@ SpatialExperiment and the ColData}
 \item{continuous}{\code{logical}; indicating whether the marks are continuous
 defaults to FALSE}
 
-\item{window}{\code{owin}; An observation window of the point pattern of class.}
+\item{window}{\code{owin}; An observation window of the point pattern of class.
+The default is to estimate the window as a convex hull around the available
+points as estimated by the function \code{spatstat.geom::ripras}. If users
+provide instead \code{window = NULL} a rectanglular window surrounding min and max
+is estimated instead. A custom window can be supplied too.}
 }
 \value{
 \code{ppp}; object for use with \code{spatstat} functions

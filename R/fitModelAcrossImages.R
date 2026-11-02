@@ -24,6 +24,11 @@
 #' cell spacing parameter is estimated from the data
 #' @param ncores `numeric`; the number of cores to used for parallel processing
 #' @param verbose `logical`; whether to print informations on the fitting
+#' @param window `owin`; An observation window of the point pattern of class. 
+#' The default is to estimate the window as a convex hull around the available
+#' points as estimated by the function `spatstat.geom::ripras`. If users
+#' provide instead `window = NULL` a rectanglular window surrounding min and max
+#' is estimated instead. A custom window can be supplied too. 
 #' @param ... other parameters passed on to `dppm` model from `spatstat.model`
 #'
 #' @returns `mppm` object of the shared fit across all images
@@ -42,6 +47,7 @@
     lambda = NULL,
     ncores = 1,
     verbose = TRUE,
+    window,
     ...) {
     mdlLs <- parallel::mclapply(imageLs, function(image) {
         speSub <- spe[, colData(spe)[[imageId]] == image]
@@ -60,6 +66,7 @@
             cellspacing = cellspacing,
             ncores = ncores,
             verbose = verbose,
+            window = window,
             ...
         )
         return(mdl)
@@ -93,6 +100,11 @@
 #' the cell spacing parameter is estimated from the data
 #' @param ncores `numeric`; the number of cores to used for parallel processing
 #' @param verbose `logical`; whether to print informations on the fitting
+#' @param window `owin`; An observation window of the point pattern of class. 
+#' The default is to estimate the window as a convex hull around the available
+#' points as estimated by the function `spatstat.geom::ripras`. If users
+#' provide instead `window = NULL` a rectanglular window surrounding min and max
+#' is estimated instead. A custom window can be supplied too. 
 #' @param ... other parameters passed on to `mppm` model from `spatstat.model`
 #'
 #' @returns list`; result from a `ppm` model in `spatstat.model`
@@ -112,6 +124,7 @@
     lambda = NULL,
     ncores = 1,
     verbose = TRUE,
+    window,
     ...
 ) {
     # we do not need the assays anymore, therefore we set them to NULL
@@ -132,7 +145,8 @@
             formula = formula,
             marks = marks,
             lambda = lambda,
-            threshold = threshold
+            threshold = threshold,
+            window = window
         )
         # if the output of the deparsing is NULL, return a NULL model
         if (is.null(out)) {
@@ -243,6 +257,11 @@
 #' per image ($n$ models in total) or estimate one shared univariate
 #' model across all images.
 #' @param verbose `logical`; whether to print informations on the fitting
+#' @param window `owin`; An observation window of the point pattern of class. 
+#' The default is to estimate the window as a convex hull around the available
+#' points as estimated by the function `spatstat.geom::ripras`. If users
+#' provide instead `window = NULL` a rectanglular window surrounding min and max
+#' is estimated instead. A custom window can be supplied too. 
 #' @param ... other parameters passed on to `dppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `ppm` model in `spatstat.model`
@@ -281,6 +300,7 @@ fitModelAcrossImages <- function(spe,
     sharedModel = FALSE,
     ncores = 1,
     verbose = TRUE,
+    window = "ripras",
     ...) {
     # some type assertions
     stopifnot(
@@ -318,6 +338,7 @@ fitModelAcrossImages <- function(spe,
             cellspacing = cellspacing,
             ncores = ncores,
             verbose = verbose,
+            window = window,
             ...
         )
     } else {
@@ -334,6 +355,7 @@ fitModelAcrossImages <- function(spe,
             cellspacing = cellspacing,
             ncores = ncores,
             verbose = verbose,
+            window = window,
             ...
         )
     }

@@ -4,7 +4,7 @@
 \alias{speToPPP}
 \title{convert a SpatialExperiment object into a point pattern}
 \usage{
-speToPPP(spe, marks, continuous = FALSE, window = NULL)
+speToPPP(spe, marks, continuous = FALSE, window = "ripras")
 }
 \arguments{
 \item{spe}{\code{SpatialExperiment}; object subset to a single image}
@@ -14,7 +14,11 @@ speToPPP(spe, marks, continuous = FALSE, window = NULL)
 \item{continuous}{\code{logical}; indicating whether the marks are continuous
 defaults to FALSE}
 
-\item{window}{\code{owin}; An observation window of the point pattern of class.}
+\item{window}{\code{owin}; An observation window of the point pattern of class.
+The default is to estimate the window as a convex hull around the available
+points as estimated by the function \code{spatstat.geom::ripras}. If users
+provide instead \code{window = NULL} a rectanglular window surrounding min and max
+is estimated instead. A custom window can be supplied too.}
 }
 \value{
 A ppp object for use with any \code{spatstat} package
