@@ -227,37 +227,61 @@ fitModel <- function(
         })
     }
     if(model == "ppm"){
-        mdl <- do.call(model,
-            args = list(
-                Q = formula,
-                data = transformSf(data),
-                interaction = interactionModel,
-                improve.type = improve.type,
-                ...
+        tryCatch(
+            {
+            mdl <- do.call(model,
+                args = list(
+                    Q = formula,
+                    data = transformSf(data),
+                    interaction = interactionModel,
+                    improve.type = improve.type,
+                    ...
+                )
             )
+            }, 
+            error = function(e){
+                message("Failed: ", conditionMessage(e))
+                NA
+            }
         )
     }else if(model == "kppm"){
-        mdl <- do.call(model,
-            args = list(
-                X = formula,
-                data = transformSf(data),
-                clusters = clusters,
-                improve.type = improve.type,
-                method = method.kppm,
-                ctrl = ctrlKppm,
-                penalised = penalised,
-                covmodel = covmodel,
-                ...
+        tryCatch(
+            {
+            mdl <- do.call(model,
+                args = list(
+                    X = formula,
+                    data = transformSf(data),
+                    clusters = clusters,
+                    improve.type = improve.type,
+                    method = method.kppm,
+                    ctrl = ctrlKppm,
+                    penalised = penalised,
+                    covmodel = covmodel,
+                    ...
+                )
             )
+            },
+            error = function(e){
+                message("Failed: ", conditionMessage(e))
+                NA
+            }
         )
     }else if(model == "dppm"){
-        mdl <- do.call(model,
-            args = list(
-                formula = formula,
-                data = transformSf(data),
-                ...
+        tryCatch(
+            {
+            mdl <- do.call(model,
+                args = list(
+                    formula = formula,
+                    data = transformSf(data),
+                    ...
+                )
             )
-        )
+            },
+            error = function(e){
+                message("Failed: ", conditionMessage(e))
+                NA
+            }
+        )   
     }else{
         stop("Model is not implemented")
     }

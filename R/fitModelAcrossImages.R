@@ -69,6 +69,7 @@
             window = window,
             ...
         )
+        mdl[["image"]] <- image
         return(mdl)
     }, mc.cores = ncores)
     return(mdlLs)
