@@ -49,6 +49,8 @@
     verbose = TRUE,
     window,
     ...) {
+    #name the list 
+    imageLs <- stats::setNames(imageLs, imageLs)
     mdlLs <- parallel::mclapply(imageLs, function(image) {
         speSub <- spe[, colData(spe)[[imageId]] == image]
         if (verbose) {
@@ -69,7 +71,6 @@
             window = window,
             ...
         )
-        mdl[["image"]] <- image
         return(mdl)
     }, mc.cores = ncores)
     return(mdlLs)

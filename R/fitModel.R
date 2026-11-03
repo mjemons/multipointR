@@ -227,9 +227,8 @@ fitModel <- function(
         })
     }
     if(model == "ppm"){
-        tryCatch(
-            {
-            mdl <- do.call(model,
+            mdl <- tryCatch(
+            {do.call(model,
                 args = list(
                     Q = formula,
                     data = transformSf(data),
@@ -241,35 +240,34 @@ fitModel <- function(
             }, 
             error = function(e){
                 message("Failed: ", conditionMessage(e))
-                NA
+                NULL
             }
         )
     }else if(model == "kppm"){
-        tryCatch(
-            {
-            mdl <- do.call(model,
-                args = list(
-                    X = formula,
-                    data = transformSf(data),
-                    clusters = clusters,
-                    improve.type = improve.type,
-                    method = method.kppm,
-                    ctrl = ctrlKppm,
-                    penalised = penalised,
-                    covmodel = covmodel,
-                    ...
-                )
+        mdl <- tryCatch(
+        {
+        do.call(model,
+            args = list(
+                X = formula,
+                data = transformSf(data),
+                clusters = clusters,
+                improve.type = improve.type,
+                method = method.kppm,
+                ctrl = ctrlKppm,
+                penalised = penalised,
+                covmodel = covmodel,
+                ...
             )
-            },
-            error = function(e){
-                message("Failed: ", conditionMessage(e))
-                NA
-            }
+        )
+        },
+        error = function(e){
+            message("Failed: ", conditionMessage(e))
+            NULL
+        }
         )
     }else if(model == "dppm"){
-        tryCatch(
-            {
-            mdl <- do.call(model,
+            mdl <- tryCatch(
+            {do.call(model,
                 args = list(
                     formula = formula,
                     data = transformSf(data),
@@ -279,12 +277,14 @@ fitModel <- function(
             },
             error = function(e){
                 message("Failed: ", conditionMessage(e))
-                NA
+                NULL
             }
         )   
     }else{
         stop("Model is not implemented")
     }
+    #in case the fit failed, return NULL
+    if (!inherits(mdl, c("ppm", "kppm", "dppm"))) return(NULL)
     #if we fit an elastic net, some coefficients can be zeroed out
     #in that case it can be advantageous to refit the model with only
     #the non-zero coefficients
