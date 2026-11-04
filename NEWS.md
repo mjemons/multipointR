@@ -1,3 +1,6 @@
+# multipointR 0.99.11
+* error handling in case the fit fails for all model options
+
 # multipointR 0.99.10
 * clip window to zero if the window extends into negative coordinates. This
 can happen if points are close to zero or coordinates are standardised to (0,1)

@@ -27,25 +27,25 @@
 #' from spatstat.model::ppm.ppp, passed on directly. Check the documentation for
 #' `ppm` or `kppm` for more details
 #' @param method.kppm `character` the method to use for `kppm`
-#' @param standardize `logical` whether or not to standardise all distances to 
-#' to a 0,1 interval to improve spline and polynomial fits 
+#' @param standardize `logical` whether or not to standardise all distances to
+#' to a 0,1 interval to improve spline and polynomial fits
 #' @param relaxed `logical` whether or not to perform a relaxed fit with only
 #' the non zero coefficients from `glmnet` improvement
 #' @param penalised `logical` whether or not to penalise against extreme values
 #' in the clustering in the objective function
 #' @param selectionExclude `character`; Formula term specified to be removed
-#' from the selection of the Lasso. This is necessary with 
+#' from the selection of the Lasso. This is necessary with
 #' `improve.type = "enet"`, because else the $p$-values will be not valid due
 #' to obvious double dipping. The inference then becomes an LRT with and without
 #' the variable indicated in `selectionExclude`.
 #' @param ctrlKppm `list`; a named list to control the `kppm` fit
 #' @param covmodel `list`; a named list with the covariance options for the
 #' LGCP model
-#' @param window `owin`; An observation window of the point pattern of class. 
+#' @param window `owin`; An observation window of the point pattern of class.
 #' The default is to estimate the window as a convex hull around the available
 #' points as estimated by the function `spatstat.geom::ripras`. If users
 #' provide instead `window = NULL` a rectanglular window surrounding min and max
-#' is estimated instead. A custom window can be supplied too. 
+#' is estimated instead. A custom window can be supplied too.
 #' @param ... other parameters passed on to `ppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `dppm` model in `spatstat.model`
@@ -61,7 +61,7 @@
 #'     formula = as.formula(
 #'         "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
 #'     ),
-#'     method.kppm = "mincon" #to reduce compute time
+#'     method.kppm = "mincon" # to reduce compute time
 #' )
 #'
 #' @importFrom mgcv s
@@ -69,25 +69,25 @@
 #' @importFrom spatstat.model kppm
 #' @importFrom spatstat.model ppm
 fitModel <- function(
-    spe,
-    model = "kppm",
-    marks,
-    formula,
-    clusters = "LGCP",
-    threshold = NULL,
-    interaction = "Hardcore",
-    lambda = NULL,
-    cellspacing = NA,
-    improve.type = NULL,
-    method.kppm = "palm",
-    relaxed = FALSE,
-    penalised = TRUE,
-    standardize = FALSE,
-    selectionExclude = NULL,
-    ctrlKppm=list(),
-    covmodel=list(model="exponential"),
-    window = "ripras",
-    ...
+      spe,
+      model = "kppm",
+      marks,
+      formula,
+      clusters = "LGCP",
+      threshold = NULL,
+      interaction = "Hardcore",
+      lambda = NULL,
+      cellspacing = NA,
+      improve.type = NULL,
+      method.kppm = "palm",
+      relaxed = FALSE,
+      penalised = TRUE,
+      standardize = FALSE,
+      selectionExclude = NULL,
+      ctrlKppm = list(),
+      covmodel = list(model = "exponential"),
+      window = "ripras",
+      ...
 ) {
     # some type assertions
     stopifnot(
@@ -107,15 +107,15 @@ fitModel <- function(
     SummarizedExperiment::rowData(spe) <- S4Vectors::DataFrame(
         row.names = rownames(spe)
     )
-  
-    # standardise the distance for better fitting of polynomials and 
+
+    # standardise the distance for better fitting of polynomials and
     # splines
     # we cannot directly do the interval 0,1 as the window has to be a bit larger
     # and smaller than this. By adding the constant 1.49e-8 which we add and
-    # subtract from the window later, the observation window is exactly 0,1 
-    if(standardize){
-        #if the window is not square determine the longest edge, this is the 
-        #scaling factor
+    # subtract from the window later, the observation window is exactly 0,1
+    if (standardize) {
+        # if the window is not square determine the longest edge, this is the
+        # scaling factor
         ### coded with claude.ai Opus 5.5
         coords <- SpatialExperiment::spatialCoords(spe)
         scale_factor <- max(diff(range(coords[, 1])), diff(range(coords[, 2])))
@@ -133,9 +133,9 @@ fitModel <- function(
     # if we do selection of variables with `improve.type = "enet"` we need
     # to exclude the inferential variable because else the p-values will be
     # not valid
-    if(identical(improve.type, "enet") && !is.null(selectionExclude)){
+    if (identical(improve.type, "enet") && !is.null(selectionExclude)) {
         termLabels <- base::attr(stats::terms(formula), "term.labels")
-        
+
         missingTerms <- setdiff(selectionExclude, termLabels)
 
         if (length(missingTerms) > 0) {
@@ -148,9 +148,9 @@ fitModel <- function(
             )
         }
         selectionTerms <- setdiff(termLabels, selectionExclude)
-        #keep the full formula for later
+        # keep the full formula for later
         fullFormula <- formula
-        formula <- stats::reformulate(selectionTerms, 
+        formula <- stats::reformulate(selectionTerms,
             response = response
         )
         # deparse the full Formula and extract the data - we need this to deparse
@@ -166,7 +166,7 @@ fitModel <- function(
         )
         fullFormula <- outFull[["formula"]]
         fullData <- outFull[["data"]]
-    }else{
+    } else {
         fullFormula <- NULL
         fullData <- NULL
     }
@@ -191,12 +191,12 @@ fitModel <- function(
 
     # small hack to overwrite the reduced dataframe with the full dataframe
     # to be able to refit later
-    if(!is.null(fullData)){
+    if (!is.null(fullData)) {
         data <- fullData
     }
 
-    #if the model is a `ppm` define an interaction model
-    if(model == "ppm"){
+    # if the model is a `ppm` define an interaction model
+    if (model == "ppm") {
         # parametrise the interaction model
         interactionModel <- defineInteractionModel(
             interaction = interaction,
@@ -204,21 +204,21 @@ fitModel <- function(
             response = response,
             data = data
         )
-    }else if(model == "kppm"){
-        if(interaction == "Hardcore"){
+    } else if (model == "kppm") {
+        if (interaction == "Hardcore") {
             if (is.null(cellspacing) || is.na(cellspacing)) {
                 minNnDist <- spatstat.geom::minnndist(data[[response]])
                 nX <- spatstat.geom::npoints(data[[response]])
                 cellspacing <- minNnDist * nX / (nX + 1)
             }
             ctrlKppm$rmin <- cellspacing
-        }else if(is.null(interaction)){
+        } else if (is.null(interaction)) {
             ctrlKppm <- ctrlKppm
-        }else{
+        } else {
             stop(interaction, " is not implemented for ", model)
         }
     }
-    
+
 
     # fix for `sf` object evaluation as suggested by Adrian Baddeley
     transformSf <- function(z) {
@@ -226,95 +226,99 @@ fitModel <- function(
             if (inherits(x, "sf")) spatstat.geom::as.owin(x) else x
         })
     }
-    if(model == "ppm"){
-            mdl <- tryCatch(
-            {do.call(model,
-                args = list(
-                    Q = formula,
-                    data = transformSf(data),
-                    interaction = interactionModel,
-                    improve.type = improve.type,
-                    ...
-                )
-            )
-            }, 
-            error = function(e){
-                message("Failed: ", conditionMessage(e))
-                NULL
-            }
-        )
-    }else if(model == "kppm"){
+    if (model == "ppm") {
         mdl <- tryCatch(
-        {
-        do.call(model,
-            args = list(
-                X = formula,
-                data = transformSf(data),
-                clusters = clusters,
-                improve.type = improve.type,
-                method = method.kppm,
-                ctrl = ctrlKppm,
-                penalised = penalised,
-                covmodel = covmodel,
-                ...
-            )
-        )
-        },
-        error = function(e){
-            message("Failed: ", conditionMessage(e))
-            NULL
-        }
-        )
-    }else if(model == "dppm"){
-            mdl <- tryCatch(
-            {do.call(model,
-                args = list(
-                    formula = formula,
-                    data = transformSf(data),
-                    ...
+            {
+                do.call(model,
+                    args = list(
+                        Q = formula,
+                        data = transformSf(data),
+                        interaction = interactionModel,
+                        improve.type = improve.type,
+                        ...
+                    )
                 )
-            )
             },
-            error = function(e){
+            error = function(e) {
                 message("Failed: ", conditionMessage(e))
                 NULL
             }
-        )   
-    }else{
+        )
+    } else if (model == "kppm") {
+        mdl <- tryCatch(
+            {
+                do.call(model,
+                    args = list(
+                        X = formula,
+                        data = transformSf(data),
+                        clusters = clusters,
+                        improve.type = improve.type,
+                        method = method.kppm,
+                        ctrl = ctrlKppm,
+                        penalised = penalised,
+                        covmodel = covmodel,
+                        ...
+                    )
+                )
+            },
+            error = function(e) {
+                message("Failed: ", conditionMessage(e))
+                NULL
+            }
+        )
+    } else if (model == "dppm") {
+        mdl <- tryCatch(
+            {
+                do.call(model,
+                    args = list(
+                        formula = formula,
+                        data = transformSf(data),
+                        ...
+                    )
+                )
+            },
+            error = function(e) {
+                message("Failed: ", conditionMessage(e))
+                NULL
+            }
+        )
+    } else {
         stop("Model is not implemented")
     }
-    #in case the fit failed, return NULL
-    if (!inherits(mdl, c("ppm", "kppm", "dppm"))) return(NULL)
-    #if we fit an elastic net, some coefficients can be zeroed out
-    #in that case it can be advantageous to refit the model with only
-    #the non-zero coefficients
-    #coded with claude.ai
-    if(identical(improve.type, "enet") && relaxed == TRUE){
+    # in case the fit failed, return NULL
+    if (!inherits(mdl, c("ppm", "kppm", "dppm"))) {
+        return(NULL)
+    }
+    # if we fit an elastic net, some coefficients can be zeroed out
+    # in that case it can be advantageous to refit the model with only
+    # the non-zero coefficients
+    # coded with claude.ai
+    if (identical(improve.type, "enet") && relaxed == TRUE) {
         allCoefs <- stats::coef(mdl)
-        selectionFormula <- mdl$trend 
+        selectionFormula <- mdl$trend
         # extract the model matrix and the terms from the formula
         mm <- stats::model.matrix(mdl)
         termLabels <- base::attr(stats::terms(selectionFormula), "term.labels")
-        assignVec  <- base::attr(mm, "assign")  
+        assignVec <- base::attr(mm, "assign")
 
-        # keep any enet fit coefficient which is greater zero -> if one 
+        # keep any enet fit coefficient which is greater zero -> if one
         # spline bases is >0 then the entire spline basis will be kept
         keepTerms <- c()
         for (i in base::seq_along(termLabels)) {
             cols <- base::which(assignVec == i)
-            blockCoefs <- allCoefs[base::names(allCoefs) 
-                %in% base::colnames(mm)[cols]]
+            blockCoefs <- allCoefs[base::names(allCoefs)
+            %in% base::colnames(mm)[cols]]
             if (length(blockCoefs) > 0 && any(blockCoefs != 0)) {
-            keepTerms <- c(keepTerms, termLabels[i])
+                keepTerms <- c(keepTerms, termLabels[i])
             }
         }
-        
+
         # problem with pre-evaluated spatstat function handling
         # improved by GPT 5.6
-        if(!is.null(fullFormula)){
+        if (!is.null(fullFormula)) {
             fullTerms <- base::attr(stats::terms(fullFormula), "term.labels")
             excludedTerms <- setdiff(fullTerms, termLabels)
-        }else{
+        } else {
             excludedTerms <- character()
         }
         # add the selectionExclude argument back
@@ -325,7 +329,7 @@ fitModel <- function(
 
         # build the formula from the intact terms not from the model matrix
         # due to the spline bases
-        refitFormula <- stats::reformulate(refitTerms, 
+        refitFormula <- stats::reformulate(refitTerms,
             response = response
         )
 
@@ -368,9 +372,9 @@ fitModel <- function(
 #' @method plot multipointRppm
 #' @importFrom rlang .data
 plot.multipointRppm <- function(x, type = "trend", ...) {
-    #if we have a `kppm` extract the `ppm` fit from the first step
-    if("kppm" %in% class(x)){
-      x <- spatstat.model::as.ppm(x)
+    # if we have a `kppm` extract the `ppm` fit from the first step
+    if ("kppm" %in% class(x)) {
+        x <- spatstat.model::as.ppm(x)
     }
     ### coded with the help of claude.ai ###
     stopifnot(spatstat.geom::verifyclass(x, "ppm"))

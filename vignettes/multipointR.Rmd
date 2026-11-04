@@ -331,7 +331,7 @@ m1 <- fitModel(
     spe = speSub,
     marks = "cellTypeNew",
     method = "palm",
-    formula = as.formula("p53_Tumour ~ 
+    formula = as.formula("p53_Tumour ~
         splines::ns(x, df = 2)*splines::ns(y, df = 2)"),
     interaction = "Hardcore"
 )
@@ -365,7 +365,7 @@ $$
 m2 <- fitModel(
     spe = speSub,
     marks = "cellTypeNew",
-    formula = as.formula("p53_Tumour ~ 
+    formula = as.formula("p53_Tumour ~
         spatstat.geom::distfun(Immune)"),
     method = "palm",
     interaction = "Hardcore"
@@ -407,16 +407,17 @@ the observed pair-correlation function indicating some unexplained variance
 
 ```{r}
 set.seed(1234)
-#extract the first Poisson fit
+# extract the first Poisson fit
 poM2 <- as.ppm(m2)
-#simulate confidence bands under `kppm` model
+# simulate confidence bands under `kppm` model
 nsim <- 99
-sims <- simulate(m2, nsim = nsim)   
-#plot the QQ
+sims <- simulate(m2, nsim = nsim)
+# plot the QQ
 qq <- qqplot.ppm(poM2,
-                 nsim = nsim,
-                 expr = sims,          
-                 type = "pearson")
+    nsim = nsim,
+    expr = sims,
+    type = "pearson"
+)
 ```
 
 Under the quantiles of the simulated `kppm` model the difference is less clear
@@ -509,7 +510,7 @@ m4 <- fitModel(
         spatstat.geom::distfun(Immune)"),
     standardize = FALSE,
     method = "palm",
-    penalised=TRUE,
+    penalised = TRUE,
     interaction = "Hardcore"
 )
 ```
@@ -552,7 +553,7 @@ $\beta_{\text{dist}}$
 mdlLs <- fitModelAcrossImages(
     spe = spe,
     imageId = "imageID",
-    imageLs = seq(1,29),
+    imageLs = seq(1, 29),
     marks = "cellTypeNew",
     formula = as.formula("p53_Tumour ~
         spatstat.geom::distfun(Immune)"),

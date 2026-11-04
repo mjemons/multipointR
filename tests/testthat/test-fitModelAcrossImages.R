@@ -39,7 +39,7 @@ test_that("fitModelAcrossImages works as shared model with interactions", {
         sharedModel = TRUE,
         marks = "cellType",
         formula =
-        as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
+            as.formula("Keratin_Tumour ~ distfun(CD8_T_cell)"),
         threshold = 10
     )
     expect_true(!is.null(mdl$Inter$interaction))
@@ -56,7 +56,7 @@ test_that("fitModelAcrossImages works as shared model with random effects", {
         interaction = "Fiksel",
         marks = "cellType",
         formula =
-        as.formula("Keratin_Tumour ~ distfun(CD8_T_cell) + (1|sample_id)"),
+            as.formula("Keratin_Tumour ~ distfun(CD8_T_cell) + (1|sample_id)"),
         threshold = 10
     )
     expect_true(!is.null(mdl))
@@ -71,8 +71,8 @@ list of factors into plain vectors and then can fit them", {
         imageLs = list("1", "2", "3"),
         sharedModel = TRUE,
         marks = "cellType",
-        formula = 
-        as.formula("Keratin_Tumour ~ tumour_type + STAGE + distfun(CD8_T_cell)"),
+        formula =
+            as.formula("Keratin_Tumour ~ tumour_type + STAGE + distfun(CD8_T_cell)"),
         threshold = 10
     )
     expect_true(!is.null(mdl))

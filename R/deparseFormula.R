@@ -11,7 +11,7 @@
 #' intensity via diggle correction
 #' @param threshold `numeric`; a threshold to apply on the minimum number of
 #' points a point pattern needs to have to fit a `ppm` model to it.
-#' @param window `owin`; An observation window of the point pattern of class. 
+#' @param window `owin`; An observation window of the point pattern of class.
 #'
 #' @returns named `list` with both the updated formula and the data for fitting
 #'
@@ -37,13 +37,13 @@
 #' )
 #'
 deparseFormula <- function(
-    spe,
-    formula,
-    response,
-    marks,
-    lambda,
-    threshold,
-    window
+      spe,
+      formula,
+      response,
+      marks,
+      lambda,
+      threshold,
+      window
 ) {
     # convert spe to ppp object
     pp <- speToPPP(spe, marks = marks, window = window)

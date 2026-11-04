@@ -24,32 +24,34 @@
 #' cell spacing parameter is estimated from the data
 #' @param ncores `numeric`; the number of cores to used for parallel processing
 #' @param verbose `logical`; whether to print informations on the fitting
-#' @param window `owin`; An observation window of the point pattern of class. 
+#' @param window `owin`; An observation window of the point pattern of class.
 #' The default is to estimate the window as a convex hull around the available
 #' points as estimated by the function `spatstat.geom::ripras`. If users
 #' provide instead `window = NULL` a rectanglular window surrounding min and max
-#' is estimated instead. A custom window can be supplied too. 
+#' is estimated instead. A custom window can be supplied too.
 #' @param ... other parameters passed on to `dppm` model from `spatstat.model`
 #'
 #' @returns `mppm` object of the shared fit across all images
 #'
 #'
-.fitSingelModelsPerImage <- function(spe,
-    model = "kppm",
-    imageId,
-    imageLs = NULL,
-    marks,
-    formula,
-    family = spatstat.model::dppGauss(),
-    threshold = NULL,
-    interaction = "StraussHard",
-    cellspacing = NA,
-    lambda = NULL,
-    ncores = 1,
-    verbose = TRUE,
-    window,
-    ...) {
-    #name the list 
+.fitSingelModelsPerImage <- function(
+      spe,
+      model = "kppm",
+      imageId,
+      imageLs = NULL,
+      marks,
+      formula,
+      family = spatstat.model::dppGauss(),
+      threshold = NULL,
+      interaction = "StraussHard",
+      cellspacing = NA,
+      lambda = NULL,
+      ncores = 1,
+      verbose = TRUE,
+      window,
+      ...
+) {
+    # name the list
     imageLs <- stats::setNames(imageLs, imageLs)
     mdlLs <- parallel::mclapply(imageLs, function(image) {
         speSub <- spe[, colData(spe)[[imageId]] == image]
@@ -102,32 +104,32 @@
 #' the cell spacing parameter is estimated from the data
 #' @param ncores `numeric`; the number of cores to used for parallel processing
 #' @param verbose `logical`; whether to print informations on the fitting
-#' @param window `owin`; An observation window of the point pattern of class. 
+#' @param window `owin`; An observation window of the point pattern of class.
 #' The default is to estimate the window as a convex hull around the available
 #' points as estimated by the function `spatstat.geom::ripras`. If users
 #' provide instead `window = NULL` a rectanglular window surrounding min and max
-#' is estimated instead. A custom window can be supplied too. 
+#' is estimated instead. A custom window can be supplied too.
 #' @param ... other parameters passed on to `mppm` model from `spatstat.model`
 #'
 #' @returns list`; result from a `ppm` model in `spatstat.model`
 #'
 #'
 .fitSharedModelAcrossImages <- function(
-    spe,
-    model = "mppm",
-    imageId,
-    imageLs = NULL,
-    marks,
-    formula,
-    family = spatstat.model::dppGauss(),
-    threshold = NULL,
-    interaction = "Fiksel",
-    cellspacing = NA,
-    lambda = NULL,
-    ncores = 1,
-    verbose = TRUE,
-    window,
-    ...
+      spe,
+      model = "mppm",
+      imageId,
+      imageLs = NULL,
+      marks,
+      formula,
+      family = spatstat.model::dppGauss(),
+      threshold = NULL,
+      interaction = "Fiksel",
+      cellspacing = NA,
+      lambda = NULL,
+      ncores = 1,
+      verbose = TRUE,
+      window,
+      ...
 ) {
     # we do not need the assays anymore, therefore we set them to NULL
     SummarizedExperiment::assays(spe) <- list()
@@ -259,11 +261,11 @@
 #' per image ($n$ models in total) or estimate one shared univariate
 #' model across all images.
 #' @param verbose `logical`; whether to print informations on the fitting
-#' @param window `owin`; An observation window of the point pattern of class. 
+#' @param window `owin`; An observation window of the point pattern of class.
 #' The default is to estimate the window as a convex hull around the available
 #' points as estimated by the function `spatstat.geom::ripras`. If users
 #' provide instead `window = NULL` a rectanglular window surrounding min and max
-#' is estimated instead. A custom window can be supplied too. 
+#' is estimated instead. A custom window can be supplied too.
 #' @param ... other parameters passed on to `dppm` model from `spatstat.model`
 #'
 #' @returns `list`; result from a `ppm` model in `spatstat.model`
@@ -282,28 +284,30 @@
 #'         "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
 #'     ),
 #'     threshold = 10,
-#'     method.kppm = "mincon" #to reduce compute time
+#'     method.kppm = "mincon" # to reduce compute time
 #' )
 #'
 #' @importFrom mgcv s
 #' @importFrom spatstat.model dppm
 #' @importFrom spatstat.model kppm
-fitModelAcrossImages <- function(spe,
-    model = "kppm",
-    imageId,
-    imageLs = NULL,
-    marks,
-    formula,
-    family = spatstat.model::dppGauss(),
-    threshold = NULL,
-    interaction = "Hardcore",
-    cellspacing = NA,
-    lambda = NULL,
-    sharedModel = FALSE,
-    ncores = 1,
-    verbose = TRUE,
-    window = "ripras",
-    ...) {
+fitModelAcrossImages <- function(
+      spe,
+      model = "kppm",
+      imageId,
+      imageLs = NULL,
+      marks,
+      formula,
+      family = spatstat.model::dppGauss(),
+      threshold = NULL,
+      interaction = "Hardcore",
+      cellspacing = NA,
+      lambda = NULL,
+      sharedModel = FALSE,
+      ncores = 1,
+      verbose = TRUE,
+      window = "ripras",
+      ...
+) {
     # some type assertions
     stopifnot(
         is(spe, "SpatialExperiment"),

@@ -41,7 +41,7 @@ mdlLs <- fitModelAcrossImages(
         "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
     ),
     threshold = 10,
-    method.kppm = "mincon" #to reduce compute time
+    method.kppm = "mincon" # to reduce compute time
 )
 
 mdlDf <- mdlToDf(
