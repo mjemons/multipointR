@@ -271,3 +271,36 @@ test_that("fitModel works with custom lambda", {
 
     expect_equal(is(mdl1), "multipointRppm")
 })
+
+test_that("fitModel works with img covariate", {
+    speSub <- subset(spe, , imageID == "15")
+
+    sfeSub <- SpatialFeatureExperiment::toSpatialFeatureExperiment(speSub)
+    (struct <- sosta::reconstructShapeDensityImage(
+        sfeSub,
+        marks = "cellType",
+        markSelect = c("Keratin_Tumour")
+    ))
+
+    img <- bdist.pixels(as.owin(struct))
+    df  <- as.data.frame(img)                  # x, y, value
+    r   <- terra::rast(df, type = "xyz")
+    names(r) <- "dist_to_border"
+
+    new_img <- S4Vectors::DataFrame(
+      sample_id   = "sample01",
+      image_id    = "dist_to_border",
+      data        = I(list(SpatialFeatureExperiment::SpatRasterImage(r))),
+      scaleFactor = 1
+    )
+    imgData(sfeSub) <- rbind(imgData(sfeSub), new_img)
+
+    mdl <- fitModel(
+        spe = sfeSub,
+        marks = "cellType",
+        formula = as.formula("Endothelial ~ dist_to_border"),
+        method.kppm = "mincon" # to reduce compute time
+    )
+    expect_equal(is(mdl), "multipointRppm")
+    expect_true(verifyclass(mdl, "kppm"))
+})

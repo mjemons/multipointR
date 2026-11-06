@@ -164,6 +164,16 @@ deparseFormula <- function(
             data[[missingVar]] <- SpatialFeatureExperiment::annotGeometry(
                 spe, missingVar
             )
+        } else if (missingVar %in%
+                SpatialExperiment::imgData(spe)$image_id) {
+            spatialImage <- SpatialExperiment::getImg(spe, 
+                image_id = missingVar)
+            # get the image into a raster, convert to a matrix that can then be
+            # accepted into `as.im`
+            r <- methods::as(spatialImage, "SpatRaster")
+            data[[missingVar]] <- spatstat.geom::as.im(
+                as.data.frame(r[[1]], xy = TRUE, na.rm = FALSE)[, 1:3]
+            ) 
         } else {
             message("The covariate(s) ", missingVar, " is missing")
             return(NULL)

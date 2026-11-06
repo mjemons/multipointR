@@ -1,3 +1,7 @@
+# multipointR 0.99.12
+* enable the passing of an image covariate to `fitModels` as stored in the 
+`SpatialExperiment::imgData` slot. 
+
 # multipointR 0.99.11
 * error handling in case the fit fails for all model options
 
