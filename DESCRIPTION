@@ -1,7 +1,7 @@
 Package: multipointR
 Title: A package to compare intensities of point patterns across samples with spatial parametric models
-Version: 0.99.10
-Authors@R:c( 
+Version: 0.99.12
+Authors@R: c( 
     person("Martin", "Emons", , "martin.emons@uzh.ch", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-5219-5311")),
     person("Wolfgang", "Huber", , role="aut",
@@ -47,7 +47,8 @@ Suggests:
     SpatialDatasets,
     sosta,
     glmnet,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    terra
 Config/testthat/edition: 3
 Depends: R (>= 4.1.0)
 VignetteBuilder: knitr

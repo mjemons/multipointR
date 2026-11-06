@@ -39,7 +39,7 @@ mdl <- fitModel(
     formula = as.formula(
         "Keratin_Tumour ~ spatstat.geom::distfun(CD8_T_cell)"
     ),
-    method.kppm = "mincon" #to reduce compute time
+    method.kppm = "mincon" # to reduce compute time
 )
 
 summary(mdl)

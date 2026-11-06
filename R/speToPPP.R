@@ -8,11 +8,11 @@
 #' @param marks `character`; the column with the labels e.g. cell types
 #' @param continuous `logical`; indicating whether the marks are continuous
 #' defaults to FALSE
-#' @param window `owin`; An observation window of the point pattern of class. 
+#' @param window `owin`; An observation window of the point pattern of class.
 #' The default is to estimate the window as a convex hull around the available
 #' points as estimated by the function `spatstat.geom::ripras`. If users
 #' provide instead `window = NULL` a rectanglular window surrounding min and max
-#' is estimated instead. A custom window can be supplied too. 
+#' is estimated instead. A custom window can be supplied too.
 #' @return `ppp`; object for use with `spatstat` functions
 #'
 #' @importFrom SummarizedExperiment colData
@@ -46,18 +46,20 @@
     # if window exist, set is as new window and potentially exclude some points
     if (!is.null(window)) {
         if (is.character(window) && identical(window, "ripras")) {
-          window <- spatstat.geom::ripras(pp) 
+            window <- spatstat.geom::ripras(pp)
         }
         pp <- spatstat.geom::as.ppp(spatstat.geom::superimpose(pp, W = window))
     }
-    #if there are any negative values, clip them to zero, because else
-    #a lot of computations will fail. Raises a warning
-    if(!all(pp$window$xrange >= 0) || !all(pp$window$yrange >= 0)){
-        warning("Some point have negative coordiantes. As this leads to 
+    # if there are any negative values, clip them to zero, because else
+    # a lot of computations will fail. Raises a warning
+    if (!all(pp$window$xrange >= 0) || !all(pp$window$yrange >= 0)) {
+        warning("Some point have negative coordiantes. As this leads to
         errors in the computations, they are clipped to zero")
         bb <- spatstat.geom::Frame(pp$window)
-        clip <- spatstat.geom::owin(xrange = c(max(0, bb$xrange[1]), bb$xrange[2]),
-            yrange = c(max(0, bb$yrange[1]), bb$yrange[2]))
+        clip <- spatstat.geom::owin(
+            xrange = c(max(0, bb$xrange[1]), bb$xrange[2]),
+            yrange = c(max(0, bb$yrange[1]), bb$yrange[2])
+        )
         window <- spatstat.geom::intersect.owin(pp$window, clip)
         pp <- spatstat.geom::as.ppp(spatstat.geom::superimpose(pp, W = window))
     }
@@ -92,11 +94,11 @@
 #' @param marks `character`; the column with the labels e.g. cell types
 #' @param continuous `logical`; indicating whether the marks are continuous
 #' defaults to FALSE
-#' @param window `owin`; An observation window of the point pattern of class. 
+#' @param window `owin`; An observation window of the point pattern of class.
 #' The default is to estimate the window as a convex hull around the available
 #' points as estimated by the function `spatstat.geom::ripras`. If users
 #' provide instead `window = NULL` a rectanglular window surrounding min and max
-#' is estimated instead. A custom window can be supplied too. 
+#' is estimated instead. A custom window can be supplied too.
 #'
 #' @return A ppp object for use with any `spatstat` package
 #' @export
