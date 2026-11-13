@@ -16,9 +16,11 @@ test_that("summary.multipointRppm works", {
     ret1 <- summary(mdl)
     ret2 <- spatstat.model::summary.kppm(mdl)
     expect_false(identical(ret1, ret2))
-    #test written by claude Opus 5.5
-    expect_true(all.equal(ret1$coefs.SE.CI$S.E.,
-          unname(sqrt(diag(vcov(as.ppm(mdl) |> (\(x) mdl)(), fast = TRUE))))))
+    # test written by claude Opus 5.5
+    expect_true(all.equal(
+        ret1$coefs.SE.CI$S.E.,
+        unname(sqrt(diag(vcov(as.ppm(mdl) |> (\(x) mdl)(), fast = TRUE))))
+    ))
 })
 
 test_that("summary.multipointRppm doesn't change anything if not kppm", {

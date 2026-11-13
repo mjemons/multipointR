@@ -12,13 +12,13 @@ test_that("mdlToDf works", {
           spatstat.geom::distfun(CD8_T_cell)"),
         threshold = 10,
         method.kppm = "mincon",
-        covmodel=list(model="exponential"),
+        covmodel = list(model = "exponential"),
     )
     imageCovariates <- c("imageID", "tumour_type")
     mdlDf <- mdlToDf(
         mdlLs = mdlLs,
         imageCovariates = imageCovariates,
-        fine=FALSE
+        fine = FALSE
     )
     expect_true(nrow(mdlDf) == length(unique(mdlDf$imageID)) *
         length(imageCovariates))
